@@ -150,6 +150,11 @@ int write_header(struct setec_astronomy_header * header, const char * filename)
 	 return 0;
 }
 
+int header_len(struct setec_astronomy_header * header)
+{
+	 return (3 * INT_LEN) + header->salt_len + header->iv_len;
+}
+
 void init_salt(struct setec_astronomy_header * header, int salt_len)
 {
 	 /* Allocate the salt */

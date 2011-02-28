@@ -15,9 +15,33 @@
 /*****************************************************************************/
 #include "setecAstronomy.h"
 #include <stdio.h>
+#include <string.h>
+#include <openssl/sha.h>
 
 int main(int argc, char ** argv)
 {
+	 SHA256_CTX ctx;
+	 int len = 7;
+	 unsigned char input[SHA256_DIGEST_LENGTH] = "somekey\0";
+	 unsigned char md[SHA256_DIGEST_LENGTH];
+	 int x;
+
+/* Prime the hash */
+	 SHA256_Init(&ctx);
+	 SHA256_Update(&ctx, input, len);
+	 SHA256_Final(md, &ctx);
+
+/* Loop the hash */
+	 for(x = 0; x < 1024; ++x) {
+			SHA256_Init(&ctx);
+			SHA256_Update(&ctx, input, SHA256_DIGEST_LENGTH);
+			SHA256_Final(md, &ctx);
+			strncpy((char*)input, (char*)md, SHA256_DIGEST_LENGTH);
+	 }
+
+	 for(x = 0; x < SHA256_DIGEST_LENGTH; ++x) {
+			printf("%c",md[x]);
+	 }			
 
 	 return 0;
 }

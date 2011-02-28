@@ -29,6 +29,7 @@ void init_header(struct setec_astronomy_header * header);
 void free_header(struct setec_astronomy_header * header);
 int read_header(struct setec_astronomy_header * header, const char * filename);
 int write_header(struct setec_astronomy_header * header, const char * filename);
+int header_len(struct setec_astronomy_header * header);
 
 void init_salt(struct setec_astronomy_header * header, int salt_len);
 void init_iv(struct setec_astronomy_header * header, int iv_len);

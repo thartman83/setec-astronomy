@@ -6,13 +6,14 @@ TEST_DIR=tests
 BIN_DIR=bin
 OBJS=${OBJS_DIR}/setecAstronomy.o ${OBJS_DIR}/header.o ${OBJS_DIR}/util.o
 TEST_OBJS=${OBJS_DIR}/test_header.o ${OBJS_DIR}/test_util.o ${OBJS_DIR}/test_setecAstronomy.o
+LIBS=-lcrypto
 
 all: setecAstronomy tests
 
 tests: test_setecAstronomy
 
-setecAstronomy: ${OBJS}
-	${CXX} ${OPTS} -o ${BIN_DIR}/setecAstronomy ${OBJS} ${OBJS_DIR}/main.o
+setecAstronomy: ${OBJS} ${OBJS_DIR}/main.o
+	${CXX} ${OPTS} ${LIBS} -o ${BIN_DIR}/setecAstronomy ${OBJS} ${OBJS_DIR}/main.o
 
 ${OBJS_DIR}/main.o: ${SRC_DIR}/setecAstronomy.h ${SRC_DIR}/main.c
 	${CXX} ${OPTS} -c ${SRC_DIR}/main.c -o ${OBJS_DIR}/main.o
