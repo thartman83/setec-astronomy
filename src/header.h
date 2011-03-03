@@ -15,6 +15,7 @@
 /*****************************************************************************/
 #ifndef HEADER_H_
 #define HEADER_H_
+#include <stdio.h>
 
 struct setec_astronomy_header
 {
@@ -28,8 +29,10 @@ struct setec_astronomy_header
 void init_header(struct setec_astronomy_header * header);
 void free_header(struct setec_astronomy_header * header);
 int read_header(struct setec_astronomy_header * header, const char * filename);
-int write_header(struct setec_astronomy_header * header, const char * filename);
-int header_len(struct setec_astronomy_header * header);
+int read_header_ext(struct setec_astronomy_header * header, FILE * fd);
+int write_header(const struct setec_astronomy_header * header, const char * filename);
+int write_header_ext(const struct setec_astronomy_header * header, FILE * fd);
+int header_len(const struct setec_astronomy_header * header);
 
 void init_salt(struct setec_astronomy_header * header, int salt_len);
 void init_iv(struct setec_astronomy_header * header, int iv_len);

@@ -1,5 +1,5 @@
 /*****************************************************************************/
-/* main.c for Setec Astronomy                                                */
+/* key.c for Setec Astronomy                                                 */
 /* Copyright (c) 2011 Thomas Hartman (rokstar83@gmail.com)                   */
 /*                                                                           */
 /* This program is free software; you can redistribute it and/or             */
@@ -13,25 +13,30 @@
 /* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             */
 /* GNU General Public License for more details.                              */
 /*****************************************************************************/
-#include <stdio.h>
-#include <stdlib.h>
-#include <mcrypt.h>
-#include <mutils/mhash_config.h>
-#include <mutils/mhash.h>
-#include <string.h>
-#include "setecAstronomy.h"
-#include "header.h"
 #include "key.h"
+#include <string.h>
+#include <openssl/sha.h>
 
-int main(int argc, char ** argv)
+void hash_key(const void * key, int key_len, int hash_count, void * hash)
 {
-	 struct name_pass_pair pair;
+	 SHA256_CTX ctx;
+	 unsigned char md[SHA256_DIGEST_LENGTH];
+	 unsigned char input[SHA256_DIGEST_LENGTH];
+	 int x;
 
-	 init_name_pass_pair(&pair);
-	 strncpy(pair.name, "TestName\0", MAX_NAME_LEN);
-	 strncpy(pair.pass, "TestPassword\0", MAX_PASS_LEN);
-	 char password[] = "foobarbaz\0";
-	 return add_name_pass_pair(&pair, "/home/thartman/setecAstronomy",password);
+	 /* Prime the hash */
+	 SHA256_Init(&ctx);
+	 SHA256_Update(&ctx, key, key_len);
+	 SHA256_Final(input, &ctx);
 
-	 return 0;
+	 hash_count--;
+	 /* Loop the hash hash_count - 1 times */	 
+	 for(x = 0; x < hash_count; ++x) {
+			SHA256_Init(&ctx);
+			SHA256_Update(&ctx, input, SHA256_DIGEST_LENGTH);
+			SHA256_Final(md, &ctx);
+			strncpy((char *)input, (char *)md, SHA256_DIGEST_LENGTH);
+	 }
+		
+	 strncpy((char *)hash, (char *)md, SHA256_DIGEST_LENGTH);
 }

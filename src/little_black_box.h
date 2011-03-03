@@ -1,5 +1,5 @@
 /*****************************************************************************/
-/* main.c for Setec Astronomy                                                */
+/* little_black_box.h for Setec Astronomy                                    */
 /* Copyright (c) 2011 Thomas Hartman (rokstar83@gmail.com)                   */
 /*                                                                           */
 /* This program is free software; you can redistribute it and/or             */
@@ -13,25 +13,36 @@
 /* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             */
 /* GNU General Public License for more details.                              */
 /*****************************************************************************/
-#include <stdio.h>
-#include <stdlib.h>
-#include <mcrypt.h>
-#include <mutils/mhash_config.h>
-#include <mutils/mhash.h>
-#include <string.h>
-#include "setecAstronomy.h"
+#ifndef LITTLE_BLACK_BOX_H_
+#define LITTLE_BLACK_BOX_H_
+
 #include "header.h"
-#include "key.h"
 
-int main(int argc, char ** argv)
+static const char CRYPT_ALGO[] = "rijndael-256";
+static const char CRYPT_MODE[] = "cbc";
+static const int KEY_LEN = 32;
+
+enum { SA_CRYPT_MODE, SA_DECRYPT_MODE }
+
+struct little_black_box
 {
-	 struct name_pass_pair pair;
+	 struct setec_astronomy_header header;	 
+	 MCRYPT md;
+	 FILE * fd;
+	 void * buffer;
+	 int buffer_len;
+	 int crypt_mode;
+	 static int ref_count = 0;
+};
 
-	 init_name_pass_pair(&pair);
-	 strncpy(pair.name, "TestName\0", MAX_NAME_LEN);
-	 strncpy(pair.pass, "TestPassword\0", MAX_PASS_LEN);
-	 char password[] = "foobarbaz\0";
-	 return add_name_pass_pair(&pair, "/home/thartman/setecAstronomy",password);
+int open_new_lbb(struct little_black_box * lbb, const char * filename, 
+								 const char * password);
+int open_lbb(struct little_black_box * lbb, const char * filename,
+						 const char * password);
+int open_lbb_ext(struct little_black_box * lbb, const char * password);
+int init_lbb(struct little_black_box * lbb);
+int close_lbb(struct little_black_box * lbb);
+int write_lbb(struct little_black_box * lbb, void * buffer, int buffer_len);
+int read_next_pair(struct little_black_box * lbb, struct name_pass_pair * pair);
 
-	 return 0;
-}
+#endif//LITTLE_BLACK_BOX_H_

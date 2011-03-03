@@ -17,7 +17,6 @@
 #include "errors.h"
 #include "util.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 
 void init_header(struct setec_astronomy_header * header)
@@ -40,19 +39,29 @@ void free_header(struct setec_astronomy_header * header)
 
 int read_header(struct setec_astronomy_header * header, const char * filename)
 {
-	 int read_length;
-	 unsigned char len_buffer[INT_LEN];
 	 FILE * fd = fopen(filename, "rb");
+	 int retval;
 
 	 /* Check to make sure the file opened */
 	 if(fd == NULL) {
 			return SA_FILE_NOT_FOUND;
 	 }
 
+	 retval = read_header_ext(header, fd);
+
+	 fclose(fd);
+
+	 return retval;
+}
+
+int read_header_ext(struct setec_astronomy_header * header, FILE * fd)
+{
+	 int read_length;
+	 unsigned char len_buffer[INT_LEN];
+
 	 /* Read the length of the salt */
 	 read_length = fread(len_buffer, sizeof(char), INT_LEN, fd);
 	 if(read_length != INT_LEN) {
-			fclose(fd);
 			return SA_NO_DATA;
 	 }
 	 header->salt_len = int_from_2bytes(len_buffer);
@@ -61,14 +70,12 @@ int read_header(struct setec_astronomy_header * header, const char * filename)
 	 header->salt = malloc(header->salt_len);
 	 read_length = fread(header->salt, sizeof(char), header->salt_len, fd);
 	 if(read_length != header->salt_len) {
-			fclose(fd);
 			return SA_NO_DATA;
 	 }
 	 
 	 /* Read the initialization vector length */
 	 read_length = fread(len_buffer, sizeof(char), INT_LEN, fd);
 	 if(read_length != INT_LEN) {
-			fclose(fd);
 			return SA_NO_DATA;
 	 }
 	 header->iv_len = int_from_2bytes(len_buffer);
@@ -77,29 +84,24 @@ int read_header(struct setec_astronomy_header * header, const char * filename)
 	 header->iv = malloc(header->iv_len);
 	 read_length = fread(header->iv, sizeof(char), header->iv_len, fd);
 	 if(read_length != header->iv_len) {
-			fclose(fd);
 			return SA_NO_DATA;
 	 }
 
 	 /* Read the hash count, the number of times to hash the salt + key */
 	 read_length = fread(len_buffer, sizeof(char), INT_LEN, fd);
 	 if(read_length != INT_LEN) {
-			fclose(fd);
 			return SA_NO_DATA;
 	 }
 	 header->hash_count = int_from_2bytes(len_buffer);
-
-	 fclose(fd);
-
+	 
 	 return SA_SUCCESS;
 }
 
-int write_header(struct setec_astronomy_header * header, const char * filename)
+int write_header(const struct setec_astronomy_header * header, 
+								 const char * filename)
 {
-	 /* Length values in the structure are at maximum 2 bytes */
-	 unsigned char buf[2];
 	 FILE * fd;
-	 int write_len;
+	 int retval;
 	 
 	 fd = fopen(filename, "wb");
 
@@ -107,33 +109,42 @@ int write_header(struct setec_astronomy_header * header, const char * filename)
 	 if(fd == NULL)
 			return SA_CAN_NOT_OPEN_FILE;
 	 
+	 retval = write_header_ext(header, fd);
+
+	 fclose(fd);
+
+	 return retval;
+}
+
+int write_header_ext(const struct setec_astronomy_header * header, FILE * fd)
+{
+	 /* Length values in the structure are at maximum 2 bytes */	 
+	 unsigned char buf[2];
+	 int write_len;	 
+
 	 /* write the salt_len first */
 	 int_to_2bytes(header->salt_len, buf);
 	 write_len = fwrite(buf, 1, INT_LEN, fd);
 	 if(write_len != INT_LEN) {
-			fclose(fd);
 			return SA_CAN_NOT_WRITE_FILE;
 	 }
 	 
 	 /* write the salt */
 	 write_len = fwrite(header->salt, 1, header->salt_len, fd);
 	 if(write_len != header->salt_len) {
-			fclose(fd);
 			return SA_CAN_NOT_WRITE_FILE;
 	 }
 
 	 /* write the iv length */
 	 int_to_2bytes(header->iv_len, buf);
 	 write_len = fwrite(buf, 1, INT_LEN, fd);	 
-	 if(write_len != INT_LEN) {
-			fclose(fd);
+	 if(write_len != INT_LEN) {			
 			return SA_CAN_NOT_WRITE_FILE;
 	 }
 
 	 /* write the iv */
 	 write_len = fwrite(header->iv, 1, header->iv_len, fd);
 	 if(write_len != header->iv_len) {
-			fclose(fd);
 			return SA_CAN_NOT_WRITE_FILE;
 	 }
 
@@ -141,16 +152,13 @@ int write_header(struct setec_astronomy_header * header, const char * filename)
 	 int_to_2bytes(header->hash_count, buf);
 	 write_len = fwrite(buf, 1, INT_LEN, fd);
 	 if(write_len != INT_LEN) {
-			fclose(fd);
 			return SA_CAN_NOT_WRITE_FILE;
 	 }
 
-	 fclose(fd);
-
-	 return 0;
+	 return SA_SUCCESS;
 }
 
-int header_len(struct setec_astronomy_header * header)
+int header_len(const struct setec_astronomy_header * header)
 {
 	 return (3 * INT_LEN) + header->salt_len + header->iv_len;
 }

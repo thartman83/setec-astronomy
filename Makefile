@@ -4,9 +4,9 @@ OBJS_DIR=objs
 SRC_DIR=src
 TEST_DIR=tests
 BIN_DIR=bin
-OBJS=${OBJS_DIR}/setecAstronomy.o ${OBJS_DIR}/header.o ${OBJS_DIR}/util.o
+OBJS=${OBJS_DIR}/setecAstronomy.o ${OBJS_DIR}/header.o ${OBJS_DIR}/util.o ${OBJS_DIR}/key.o
 TEST_OBJS=${OBJS_DIR}/test_header.o ${OBJS_DIR}/test_util.o ${OBJS_DIR}/test_setecAstronomy.o
-LIBS=-lcrypto
+LIBS=-lcrypto -lmcrypt
 
 all: setecAstronomy tests
 
@@ -27,8 +27,11 @@ ${OBJS_DIR}/header.o: ${SRC_DIR}/header.h ${SRC_DIR}/errors.h ${SRC_DIR}/util.h 
 ${OBJS_DIR}/util.o: ${SRC_DIR}/util.h ${SRC_DIR}/util.c
 	${CXX} ${OPTS} -c ${SRC_DIR}/util.c -o ${OBJS_DIR}/util.o
 
+${OBJS_DIR}/key.o: ${SRC_DIR}/key.h ${SRC_DIR}/key.c
+	${CXX} ${OPTS} -c ${SRC_DIR}/key.c -o ${OBJS_DIR}/key.o
+
 test_setecAstronomy: ${TEST_OBJS} ${OBJS}
-	${CXX} ${OPTS} -o ${BIN_DIR}/test_setecAstronomy ${TEST_OBJS} ${OBJS}
+	${CXX} ${OPTS} ${LIBS} -o ${BIN_DIR}/test_setecAstronomy ${TEST_OBJS} ${OBJS}
 
 ${OBJS_DIR}/test_setecAstronomy.o: ${TEST_DIR}/test_util.h ${TEST_DIR}/test_header.h ${TEST_DIR}/test_setecAstronomy.c
 	${CXX} ${OPTS} -c ${TEST_DIR}/test_setecAstronomy.c -o ${OBJS_DIR}/test_setecAstronomy.o
