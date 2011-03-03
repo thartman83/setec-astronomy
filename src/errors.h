@@ -17,6 +17,7 @@
 #define ERRORS_HH_
 
 enum { SA_SUCCESS = 0,
+			 SA_NO_MORE_PAIRS = 1,
 			 SA_FILE_NOT_FOUND = -1,
 			 SA_NO_DATA = -2,
 			 SA_CAN_NOT_OPEN_FILE = -3,
@@ -29,7 +30,8 @@ enum { SA_SUCCESS = 0,
 			 SA_WRONG_MODE = -10, 
 			 SA_NOT_ENOUGH_DATA = -11,
 			 SA_CAN_NOT_DECRYPT = -12,
-			 SA_PAIR_TOO_LONG = -13;
+			 SA_PAIR_TOO_LONG = -13,
+			 SA_NOT_PAIR_FORMAT = -14,
 			 SA_NOT_IMPLEMENTED = -100};
 			 
 #endif//ERRORS_HH_

@@ -29,8 +29,8 @@ static const char CRYPT_MODE[] = "cbc";
 
 struct name_pass_pair
 {
-	 char * name;
-	 char * pass;
+	 char name[MAX_NAME_LEN];
+	 char pass[MAX_PASS_LEN];
 };
 
 char * name_pass_pair_to_string(const struct name_pass_pair * pair);

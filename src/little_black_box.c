@@ -14,7 +14,40 @@
 /* GNU General Public License for more details.                              */
 /*****************************************************************************/
 #include "little_black_box.h"
+#include "errors.h"
+#include "key.h"
 #include <string.h>
+#include <stdlib.h>
+
+int init_lbb(struct little_black_box * lbb, int crypt_mode)
+{
+	 /* set everything to their default values */
+	 init_header(&(lbb->header));
+	 lbb->md = NULL;
+	 lbb->fd = NULL;
+	 lbb->buffer = NULL;
+	 lbb->data_len = 0;
+	 lbb_ref_count++;
+	 lbb->crypt_mode = crypt_mode;
+
+	 /* setup a mcrypt descriptor */
+	 lbb->md = mcrypt_module_open((char *)CRYPT_ALGO, NULL, 
+																(char *)CRYPT_MODE, NULL);
+
+	 lbb->block_size = mcrypt_enc_get_block_size(lbb->md);
+
+	 /* If we are crypting data the buffer needs to be the block size,
+			if we are decrypting the buffer needs to be the MAX_PAIR_SIZE +
+			the block size.  This is for the corner case where the first character 
+			of a read block is the \n terminating a pair string */
+	 lbb->buffer = calloc(1, (crypt_mode == SA_CRYPT_MODE ? lbb->block_size : 
+														MAX_PAIR_SIZE + lbb->block_size));
+
+	 if(lbb->md == NULL)
+			return SA_CAN_NOT_OPEN_CRYPT_MODULE;
+	 else
+			return SA_SUCCESS;
+}
 
 int open_new_lbb(struct little_black_box * lbb, const char * filename, 
 								 const char * password)
@@ -33,8 +66,8 @@ int open_new_lbb(struct little_black_box * lbb, const char * filename,
 	 if(iv_size < 0)
 			return SA_INVALID_IV_SIZE;
 
-	 init_iv(header, iv_size);
-	 init_salt(header, 0);
+	 init_iv(&(lbb->header), iv_size);
+	 init_salt(&(lbb->header), 0);
 	 
 	 /* Check to see if the filename already exists, no clobbering */
 	 tmp_fd = fopen(filename, "rb");
@@ -50,8 +83,7 @@ int open_new_lbb(struct little_black_box * lbb, const char * filename,
 
 int open_lbb(struct little_black_box * lbb, const char * filename,
 						 const char * password)
-{
-	 int iv_size;	 
+{	 
 	 int err = 0;
 
 	 /* initialize the little black box to defaults */
@@ -61,7 +93,7 @@ int open_lbb(struct little_black_box * lbb, const char * filename,
 	 
 	 /* open up the file and read the header */
 	 lbb->fd = fopen(filename, "rb");
-	 if(fd == NULL)
+	 if(lbb->fd == NULL)
 			return SA_FILE_NOT_FOUND;
 
 	 read_header_ext(&(lbb->header), lbb->fd);
@@ -75,7 +107,7 @@ int open_lbb_ext(struct little_black_box * lbb, const char * password)
 
 	 hash_key(password, strlen(password), 1, key);
 	 
-	 if(mcrypt_generic_init(lbb->md, key, KEY_LEN, lbb->header->iv) < 0)
+	 if(mcrypt_generic_init(lbb->md, key, KEY_LEN, lbb->header.iv) < 0)
 			return SA_CAN_NOT_INIT_CRYPT;
 
 	 /* initialize the buffer to defaults */
@@ -85,34 +117,6 @@ int open_lbb_ext(struct little_black_box * lbb, const char * password)
 	 return SA_SUCCESS;
 }
 
-int init_lbb(struct little_black_box * lbb, int crypt_mode)
-{
-	 /* set everything to their default values */
-	 init_header(&(lbb->header));
-	 lbb->md = NULL;
-	 lbb->fd = NULL;
-
-	 /* If we are crypting data the buffer needs to be the block size,
-			if we are decrypting the buffer needs to be the MAX_PAIR_SIZE +
-			the block size.  This is for the corner case where the first character 
-			of a read block is the \n terminating a pair string */
-	 lbb->buffer = calloc(1, (crypt_mode == SA_CRYPT_MODE ? BLOCK_SIZE : 
-														MAX_PAIR_SIZE + BLOCK_SIZE));
-	 lbb->data_len = 0;
-	 lbb->ref_count++;
-	 lbb->crypt_mode = crypt_mode;
-
-	 /* setup a mcrypt descriptor */
-	 if(lbb->ref_count == 1)
-			lbb->md = mcrypt_module_open((char *)CRYPT_ALGO, NULL, 
-																	 (char *)CRYPT_MODE, NULL);
-
-	 if(lbb->md == NULL)
-			return SA_CAN_NOT_OPEN_CRYPT_MODULE;
-	 else
-			return SA_SUCCESS;
-}
-
 int close_lbb(struct little_black_box * lbb)
 {
 	 /* write anything that may be left in the buffer */
@@ -120,24 +124,24 @@ int close_lbb(struct little_black_box * lbb)
 			write_lbb_buffer(lbb);
 
 	 /* free up the header */
-	 free_header(lbb->header);
+	 free_header(&(lbb->header));
 
 	 /* deinit and close the mcrypt descriptor (if necessary) */
 	 mcrypt_generic_deinit(lbb->md);
 
-	 if(lbb->ref_count == 1)
-			mcrypt_close_module(lbb->md);
-	 else
-			lbb->ref_count--;				 
+	 lbb_ref_count--;
 
-	 /* close the file descriptor */
-	 fclose(fd);
+	 /* if this the last little black box to be closed kill the module as well */
+	 if(lbb_ref_count == 0)
+			mcrypt_module_close(lbb->md);
 
 	 /* zero out the buffer before freeing it */
 	 if(lbb->buffer != NULL) {
-			memset(lbb->buffer, 0, BLOCK_SIZE);
+			memset(lbb->buffer, 0, lbb->block_size);
 			free(lbb->buffer);
 	 }
+
+	 fclose(lbb->fd);
 
 	 return SA_SUCCESS;
 }
@@ -154,8 +158,8 @@ int write_lbb(struct little_black_box * lbb, void * buffer, int buffer_len)
 
 	 while(buffer_len > 0) { /* loop until we've exhausted all of the data */
 			/* figure out how much data can fit into the buffer */
-			size = ((BLOCK_SIZE - lbb->data_len) > buffer_len ? buffer_len : 
-							(BLOCK_SIZE - lbb->data_len));
+			size = ((lbb->block_size - lbb->data_len) > buffer_len ? buffer_len : 
+							(lbb->block_size - lbb->data_len));
 
 			/* pun the buffer and advance the pointer to the point where it can take 
 				 new data */
@@ -166,7 +170,7 @@ int write_lbb(struct little_black_box * lbb, void * buffer, int buffer_len)
 			
 			/* Check to see if the buffer needs to be written and purged before 
 				 the next pass, otherwise recalc the data length*/
-			if((size + lbb->data_len) == BLOCK_SIZE) {
+			if((size + lbb->data_len) == lbb->block_size) {
 				 err = write_lbb_buffer(lbb);
 				 if(err != SA_SUCCESS)
 						return err;
@@ -190,27 +194,29 @@ int write_lbb_buffer(struct little_black_box * lbb)
 			return SA_WRONG_MODE;
 
 	 /* encrypt the data */
-	 if(mcrypt_generic(lbb->md, lbb->buffer, BLOCK_SIZE) != 0)
+	 if(mcrypt_generic(lbb->md, lbb->buffer, lbb->block_size) != 0)
 			return SA_CAN_NOT_CRYPT;
 	 
 	 /* write the data */
-	 write_amt = fwrite(lbb->buffer, 1, BLOCK_SIZE, lbb->fd);
-	 if(write_amt != BLOCK_SIZE)	 
+	 write_amt = fwrite(lbb->buffer, 1, lbb->block_size, lbb->fd);
+	 if(write_amt != lbb->block_size)	 
 			return SA_CAN_NOT_WRITE_FILE;
 
 	 /* zero out the data */
-	 memset(lbb->buffer, 0, BLOCK_SIZE);
+	 memset(lbb->buffer, 0, lbb->block_size);
 	 lbb->data_len = 0;
+
+	 return SA_SUCCESS;
 }
 
 int read_next_pair(struct little_black_box * lbb, struct name_pass_pair * pair)
 {
-	 unsigned char read_buffer[BLOCK_SIZE];
-	 unsigned char pair_string[MAX_PAIR_SIZE];
-	 unsigned char tmp[MAX_PAIR_SIZE];
+	 char read_buffer[lbb->block_size];
+	 char pair_string[MAX_PAIR_SIZE];
+	 char tmp[MAX_PAIR_SIZE + lbb->block_size];
 	 int found = 0;
 	 int len, err;
-	 unsigned char * ptr;
+	 char * ptr;
 
 	 if(lbb->crypt_mode != SA_DECRYPT_MODE)
 			return SA_WRONG_MODE;
@@ -218,61 +224,34 @@ int read_next_pair(struct little_black_box * lbb, struct name_pass_pair * pair)
 	 while(!found) {
 			/* Check to see if there is a pair in the buffer, do this first in case one already
 				 exists */
-			ptr = strchr(lbb->buffer, '\n');
+			ptr = strchr((const char *)lbb->buffer, '\n');
 			if(ptr != NULL) {
 				 /* Found the end of a pair */
-				 len = lbb->buffer - ptr;
+				 len = (char*)lbb->buffer - ptr;
 				 found = 1;
 			}else{ 
 				 /* Did not find pair, check to see if the buffer is full before adding new data */
-				 if(lbb->buffer_len >= MAX_PAIR_SIZE)
+				 if(lbb->data_len >= MAX_PAIR_SIZE)
 						return SA_PAIR_TOO_LONG;
 
-				 err = fread(read_buffer, 1, BLOCK_SIZE, lbb->fd);
+				 err = fread(read_buffer, 1, lbb->block_size, lbb->fd);
 				 /* setec astronomy files sizes should be divisible by block size after the header */
-				 if(err != BLOCK_SIZE)		
-						return SA_NOT_ENOUGH_DATA;
+				 if(err != lbb->block_size) {
+						if(err == 0 && lbb->data_len == 0) { /* no more pairs left in file */
+							 return SA_NO_MORE_PAIRS;
+						}else{
+							 return SA_NOT_ENOUGH_DATA;
+						}
+				 }
 
 				 /* Decrypt the new data */
-				 err = mdecrypt_generic(lbb->md, read_buffer, BLOCK_SIZE);
+				 err = mdecrypt_generic(lbb->md, read_buffer, lbb->block_size);
 				 if(err != 0)
-						return SA_CAN_NOT_DECRYPT;				 				 
+						return SA_CAN_NOT_DECRYPT;
+
+				 /* add the new data to the buffer for the next pass */
+				 strncpy((char *)lbb->buffer + (lbb->data_len + 1), read_buffer, lbb->block_size);
 			}
-	 }
-
-
-
-
-
-
-	 /* check to see if a pair already exists in the buffer */
-	 ptr = strchr(lbb->buffer, '\n');
-	 if(ptr != NULL) {
-			/* a little pointer subtraction to find how long the string is */
-			len = lbb->buffer - ptr;
-			found = 1;
-	 }
-
-	 while(!found) {
-			/* read a buffer block */
-			err = mdecrypt_generic(lbb->md, read_buffer, BLOCK_SIZE);
-			if(err != 0)
-				 return SA_CAN_NOT_DECRYPT;
-			
-			/* search for the first '\n' which indicates the end of a pair */
-			ptr = strchr(read_buffer, '\n');		 
-			if(ptr != NULL) {				 
-				 /* found the end of a pair append the data up to and including the '\n' 
-						to the buffer */
-				 len = read_buffer - ptr + 1;
-				 strncpy((unsigned char *)lbb->buffer + (lbb->buffer_len + 1), read_buffer, len);
-				 lbb->buffer_len = strlen((unsigned char *)lbb->buffer);
-
-				 /* create pair structure from buffer */
-				 
-				 /* zero the buffer and append the rest of the data */
-				 found = 1;
-			}		 			
 	 }
 
 	 /* Copy the pair out */
@@ -280,12 +259,39 @@ int read_next_pair(struct little_black_box * lbb, struct name_pass_pair * pair)
 	 pair_string[len] = '\0';
 
 	 /* put the data into the pair */
-	 init_name_pass_pair(pair, pair_string, len);
+	 init_name_pass_pair(pair_string, pair);
 	 
-	 /* Move everthing but the pair over to a temp buffer */
-	 memset(tmp, 0, MAX_PAIR_SIZE);
-	 memcpy(tmp, buffer + len + 1, MAX_PAIR_SIZE - len);
-	 memcpy(buffer, tmp, MAX_PAIR_SIZE);
+	 /* Zero out the temp buffer to provide \0 termination when we are done */
+	 memset(tmp, 0, MAX_PAIR_SIZE + lbb->block_size);
 
+	 /* Copy the non-pair data to the beginning of the temporary buffer */
+	 memcpy(tmp, lbb->buffer + (len + 1), MAX_PAIR_SIZE + lbb->block_size - len);
+
+	 /* Copy the temporary buffer back to buffer */
+	 memcpy(lbb->buffer, tmp, MAX_PAIR_SIZE + lbb->block_size);
+
+	 /* New buffer should null terminated at the end of the data */
+	 lbb->data_len = strlen(lbb->buffer);
+
+	 return SA_SUCCESS;
+}
+
+int init_name_pass_pair(const char * pair_string, struct name_pass_pair * pair)
+{
+	 char * ptr = NULL;
+	 int len;
+
+	 ptr = strchr(pair_string, '=');
+
+	 if(ptr == NULL)
+			return SA_NOT_PAIR_FORMAT;
+
+	 len = pair_string - ptr;
+	 
+	 strncpy(pair->name, pair_string, len);
+	 pair->name[len] = '\0';
+
+	 strcpy(pair->pass, pair_string + (len + 2));
+	 
 	 return SA_SUCCESS;
 }

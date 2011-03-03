@@ -17,12 +17,24 @@
 #define LITTLE_BLACK_BOX_H_
 
 #include "header.h"
+#include <mcrypt.h>
 
 static const char CRYPT_ALGO[] = "rijndael-256";
 static const char CRYPT_MODE[] = "cbc";
 static const int KEY_LEN = 32;
 
-enum { SA_CRYPT_MODE, SA_DECRYPT_MODE }
+enum {MAX_NAME_LEN = 50, 
+			MAX_PASS_LEN = 25, 
+			MAX_PAIR_SIZE = 78}; // MAX_NAME_LEN + MAX_PASS_LEN + = + \n + \0
+
+struct name_pass_pair
+{
+	 char name[MAX_NAME_LEN];
+	 char pass[MAX_PASS_LEN];
+};
+
+enum { SA_CRYPT_MODE, SA_DECRYPT_MODE };
+static int lbb_ref_count = 0;
 
 struct little_black_box
 {
@@ -30,19 +42,24 @@ struct little_black_box
 	 MCRYPT md;
 	 FILE * fd;
 	 void * buffer;
-	 int buffer_len;
+	 int data_len;
 	 int crypt_mode;
-	 static int ref_count = 0;
+	 int block_size;
 };
+
+int init_lbb(struct little_black_box * lbb, int CRYPT_MODE);
 
 int open_new_lbb(struct little_black_box * lbb, const char * filename, 
 								 const char * password);
 int open_lbb(struct little_black_box * lbb, const char * filename,
 						 const char * password);
 int open_lbb_ext(struct little_black_box * lbb, const char * password);
-int init_lbb(struct little_black_box * lbb);
+
 int close_lbb(struct little_black_box * lbb);
 int write_lbb(struct little_black_box * lbb, void * buffer, int buffer_len);
+int write_lbb_buffer(struct little_black_box * lbb);
 int read_next_pair(struct little_black_box * lbb, struct name_pass_pair * pair);
+
+int init_name_pass_pair(const char * pair_string, struct name_pass_pair * pair);
 
 #endif//LITTLE_BLACK_BOX_H_
