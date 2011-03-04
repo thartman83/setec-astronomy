@@ -54,7 +54,6 @@ int open_new_lbb(struct little_black_box * lbb, const char * filename,
 int open_lbb(struct little_black_box * lbb, const char * filename,
 						 const char * password);
 int open_lbb_ext(struct little_black_box * lbb, const char * password);
-
 int close_lbb(struct little_black_box * lbb);
 int write_lbb(struct little_black_box * lbb, void * buffer, int buffer_len);
 int write_lbb_buffer(struct little_black_box * lbb);

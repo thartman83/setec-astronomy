@@ -1,11 +1,10 @@
 CXX=gcc
-OPTS=-Wall -g -fPIC
+OPTS=-Wall -g
 OBJS_DIR=objs
 SRC_DIR=src
 TEST_DIR=tests
 BIN_DIR=bin
 OBJS=${OBJS_DIR}/header.o ${OBJS_DIR}/little_black_box.o ${OBJS_DIR}/util.o ${OBJS_DIR}/key.o
-#OBJS=${OBJS_DIR}/setecAstronomy.o ${OBJS_DIR}/header.o ${OBJS_DIR}/util.o ${OBJS_DIR}/key.o ${OBJS_DIR}/little_black_box.o
 TEST_OBJS=${OBJS_DIR}/test_header.o ${OBJS_DIR}/test_util.o ${OBJS_DIR}/test_setecAstronomy.o
 LIBS=-lcrypto -lmcrypt
 
@@ -18,9 +17,6 @@ setecAstronomy: ${OBJS} ${OBJS_DIR}/main.o
 
 ${OBJS_DIR}/main.o: ${SRC_DIR}/setecAstronomy.h ${SRC_DIR}/main.c
 	${CXX} ${OPTS} -c ${SRC_DIR}/main.c -o ${OBJS_DIR}/main.o
-
-${OBJS_DIR}/setecAstronomy.o: ${SRC_DIR}/setecAstronomy.c ${SRC_DIR}/setecAstronomy.h
-	${CXX} ${OPTS} -c ${SRC_DIR}/setecAstronomy.c -o ${OBJS_DIR}/setecAstronomy.o
 
 ${OBJS_DIR}/header.o: ${SRC_DIR}/header.h ${SRC_DIR}/errors.h ${SRC_DIR}/util.h ${SRC_DIR}/header.c
 	${CXX} ${OPTS} -c ${SRC_DIR}/header.c -o ${OBJS_DIR}/header.o
