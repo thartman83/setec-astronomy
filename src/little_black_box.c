@@ -91,8 +91,13 @@ int init_lbb(struct little_black_box * lbb, int crypt_mode)
 	 init_header(&(lbb->header));
 	 lbb->md = NULL;
 	 lbb->fd = NULL;
+
+	 /* If we are crypting data the buffer needs to be the block size,
+			if we are decrypting the buffer needs to be the MAX_PAIR_SIZE +
+			the block size.  This is for the corner case where the first character 
+			of a read block is the \n terminating a pair string */
 	 lbb->buffer = calloc(1, (crypt_mode == SA_CRYPT_MODE ? BLOCK_SIZE : 
-														MAX_PAIR_SIZE));
+														MAX_PAIR_SIZE + BLOCK_SIZE));
 	 lbb->data_len = 0;
 	 lbb->ref_count++;
 	 lbb->crypt_mode = crypt_mode;
@@ -204,33 +209,74 @@ int read_next_pair(struct little_black_box * lbb, struct name_pass_pair * pair)
 	 unsigned char pair_string[MAX_PAIR_SIZE];
 	 unsigned char tmp[MAX_PAIR_SIZE];
 	 int found = 0;
-	 int len;
+	 int len, err;
 	 unsigned char * ptr;
 
 	 if(lbb->crypt_mode != SA_DECRYPT_MODE)
 			return SA_WRONG_MODE;
 
+	 while(!found) {
+			/* Check to see if there is a pair in the buffer, do this first in case one already
+				 exists */
+			ptr = strchr(lbb->buffer, '\n');
+			if(ptr != NULL) {
+				 /* Found the end of a pair */
+				 len = lbb->buffer - ptr;
+				 found = 1;
+			}else{ 
+				 /* Did not find pair, check to see if the buffer is full before adding new data */
+				 if(lbb->buffer_len >= MAX_PAIR_SIZE)
+						return SA_PAIR_TOO_LONG;
+
+				 err = fread(read_buffer, 1, BLOCK_SIZE, lbb->fd);
+				 /* setec astronomy files sizes should be divisible by block size after the header */
+				 if(err != BLOCK_SIZE)		
+						return SA_NOT_ENOUGH_DATA;
+
+				 /* Decrypt the new data */
+				 err = mdecrypt_generic(lbb->md, read_buffer, BLOCK_SIZE);
+				 if(err != 0)
+						return SA_CAN_NOT_DECRYPT;				 				 
+			}
+	 }
+
+
+
+
+
+
 	 /* check to see if a pair already exists in the buffer */
 	 ptr = strchr(lbb->buffer, '\n');
 	 if(ptr != NULL) {
+			/* a little pointer subtraction to find how long the string is */
 			len = lbb->buffer - ptr;
 			found = 1;
 	 }
 
 	 while(!found) {
 			/* read a buffer block */
+			err = mdecrypt_generic(lbb->md, read_buffer, BLOCK_SIZE);
+			if(err != 0)
+				 return SA_CAN_NOT_DECRYPT;
 			
 			/* search for the first '\n' which indicates the end of a pair */
-		 
-			/* append the data up to and including the '\n' to the buffer */
+			ptr = strchr(read_buffer, '\n');		 
+			if(ptr != NULL) {				 
+				 /* found the end of a pair append the data up to and including the '\n' 
+						to the buffer */
+				 len = read_buffer - ptr + 1;
+				 strncpy((unsigned char *)lbb->buffer + (lbb->buffer_len + 1), read_buffer, len);
+				 lbb->buffer_len = strlen((unsigned char *)lbb->buffer);
 
-			/* create pair structure from buffer */
-			
-			/* zero the buffer and append the rest of the data */
+				 /* create pair structure from buffer */
+				 
+				 /* zero the buffer and append the rest of the data */
+				 found = 1;
+			}		 			
 	 }
 
 	 /* Copy the pair out */
-	 strncpy(pair_string, buffer, len);
+	 strncpy(pair_string, lbb->buffer, len);
 	 pair_string[len] = '\0';
 
 	 /* put the data into the pair */
