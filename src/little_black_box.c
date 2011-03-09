@@ -19,9 +19,16 @@
 #include <string.h>
 #include <stdlib.h>
 
+static int lbb_ref_count = 0;
+
+int get_lbb_ref_count() {return lbb_ref_count;}
+
 int init_lbb(struct little_black_box * lbb, int crypt_mode)
 {
 	 int buffer_size;
+	 
+	 if(crypt_mode != 0 && crypt_mode != 1)
+			return SA_INVALID_CRYPT_MODE;
 
 	 /* set everything to their default values */
 	 init_header(&(lbb->header));
@@ -29,7 +36,6 @@ int init_lbb(struct little_black_box * lbb, int crypt_mode)
 	 lbb->fd = NULL;
 	 lbb->buffer = NULL;
 	 lbb->data_len = 0;
-	 lbb_ref_count++;
 	 lbb->crypt_mode = crypt_mode;
 
 	 /* setup a mcrypt descriptor */
@@ -48,6 +54,8 @@ int init_lbb(struct little_black_box * lbb, int crypt_mode)
 	 buffer_size = (crypt_mode == SA_CRYPT_MODE ? lbb->block_size : 
 									MAX_PAIR_SIZE + lbb->block_size);
 	 lbb->buffer = calloc(1, buffer_size);
+
+	 lbb_ref_count++;
 
 	 return SA_SUCCESS;
 }
@@ -123,6 +131,7 @@ int open_lbb_ext(struct little_black_box * lbb, const char * password)
 int close_lbb(struct little_black_box * lbb)
 {
 	 int err;
+
 	 /* write anything that may be left in the buffer */
 	 if(lbb->data_len != 0 && lbb->crypt_mode == SA_CRYPT_MODE) {
 			err = write_lbb_buffer(lbb);
@@ -146,9 +155,11 @@ int close_lbb(struct little_black_box * lbb)
 	 if(lbb->buffer != NULL) {
 			memset(lbb->buffer, 0, lbb->block_size);
 			free(lbb->buffer);
+			lbb->buffer = NULL;
 	 }
 
-	 fclose(lbb->fd);
+	 if(lbb->fd != NULL)
+			fclose(lbb->fd);
 
 	 return SA_SUCCESS;
 }

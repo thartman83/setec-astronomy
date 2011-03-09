@@ -1,5 +1,5 @@
 /*****************************************************************************/
-/* errors.h for Setec Astronomy                                              */
+/* test_little_black_box.h for Setec Astronomy                               */
 /* Copyright (c) 2011 Thomas Hartman (rokstar83@gmail.com)                   */
 /*                                                                           */
 /* This program is free software; you can redistribute it and/or             */
@@ -13,27 +13,22 @@
 /* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             */
 /* GNU General Public License for more details.                              */
 /*****************************************************************************/
-#ifndef ERRORS_HH_
-#define ERRORS_HH_
+#ifndef TEST_LITTLE_BLACK_BOX_HH_
+#define TEST_LITTLE_BLACK_BOX_HH_
 
-enum { SA_SUCCESS = 0,
-			 SA_NO_MORE_PAIRS = 1,
-			 SA_FILE_NOT_FOUND = -1,
-			 SA_NO_DATA = -2,
-			 SA_CAN_NOT_OPEN_FILE = -3,
-			 SA_CAN_NOT_WRITE_FILE = -4,
-			 SA_CAN_NOT_OPEN_CRYPT_MODULE = -5,
-			 SA_INVALID_IV_SIZE = -6,
-			 SA_CAN_NOT_INIT_CRYPT = -7,
-			 SA_FILE_EXISTS = -8,
-			 SA_CAN_NOT_CRYPT = -9,
-			 SA_WRONG_MODE = -10, 
-			 SA_NOT_ENOUGH_DATA = -11,
-			 SA_CAN_NOT_DECRYPT = -12,
-			 SA_PAIR_TOO_LONG = -13,
-			 SA_NOT_PAIR_FORMAT = -14,
-			 SA_INVALID_HEADER = -15,
-			 SA_INVALID_CRYPT_MODE = -16,
-			 SA_NOT_IMPLEMENTED = -100};
-			 
-#endif//ERRORS_HH_
+static const char EXISTING_FILE[]= "../tests/data/file_exists";
+static const char NON_EXISTING_FILE[] = "../tests/data/file_does_not_exists";
+static const char NO_DATA_FILE[] = "../tests/data/no_data";
+static const char TEST_PASSWORD[] = "foobarbaz";
+
+int test_init_lbb();
+int test_open_new_lbb();
+int test_open_lbb();
+int test_open_lbb_ext();
+int test_close_lbb();
+int test_write_lbb();
+int test_write_lbb_buffer();
+int test_read_next_pair();
+int test_init_name_pass_pair();
+
+#endif//TEST_LITTLE_BLACK_BOX_HH_

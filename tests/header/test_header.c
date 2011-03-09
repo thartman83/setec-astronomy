@@ -14,9 +14,16 @@
 /* GNU General Public License for more details.                              */
 /*****************************************************************************/
 #include "test_header.h"
-#include "../src/header.h"
-#include "../src/errors.h"
-#include "unit_test.h"
+#include "../../src/header.h"
+#include "../../src/errors.h"
+#include "../unit_test.h"
+
+int main()
+{	 
+	 RUN_TEST(test_read_header());
+
+	 return 0;
+}
 
 int test_read_header()
 {
@@ -25,7 +32,7 @@ int test_read_header()
 	 /* Start off with a good test */
 	 init_header(&r_header);
 	 
-	 read_header(&r_header, GOOD_HEADER_TEST);
+	 test_assert(read_header(&r_header, GOOD_HEADER_TEST) == SA_SUCCESS);
 
 	 /* Check to make sure that the read and write headers are identical */
 	 test_assert(r_header.salt_len == 1024);

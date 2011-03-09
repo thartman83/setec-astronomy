@@ -1,48 +1,17 @@
-CXX=gcc
-OPTS=-Wall -g
-OBJS_DIR=objs
-SRC_DIR=src
-TEST_DIR=tests
-BIN_DIR=bin
-OBJS=${OBJS_DIR}/header.o ${OBJS_DIR}/little_black_box.o ${OBJS_DIR}/util.o ${OBJS_DIR}/key.o
-TEST_OBJS=${OBJS_DIR}/test_header.o ${OBJS_DIR}/test_util.o ${OBJS_DIR}/test_setecAstronomy.o
-LIBS=-lcrypto -lmcrypt
+PROJECT_ROOT := $(shell pwd)
+export BIN_DIR=${PROJECT_ROOT}/bin
+export SRC_DIR=${PROJECT_ROOT}/src
+export OBJS_DIR=${PROJECT_ROOT}/objs
 
-all: setecAstronomy tests
+all: setec_astronomy tests
 
-tests: test_setecAstronomy
+setec_astronomy: 
+	${MAKE} -C src
 
-setecAstronomy: ${OBJS} ${OBJS_DIR}/main.o
-	${CXX} ${OPTS} ${LIBS} -o ${BIN_DIR}/setecAstronomy ${OBJS} ${OBJS_DIR}/main.o
-
-${OBJS_DIR}/main.o: ${SRC_DIR}/setecAstronomy.h ${SRC_DIR}/main.c
-	${CXX} ${OPTS} -c ${SRC_DIR}/main.c -o ${OBJS_DIR}/main.o
-
-${OBJS_DIR}/header.o: ${SRC_DIR}/header.h ${SRC_DIR}/errors.h ${SRC_DIR}/util.h ${SRC_DIR}/header.c
-	${CXX} ${OPTS} -c ${SRC_DIR}/header.c -o ${OBJS_DIR}/header.o
-
-${OBJS_DIR}/util.o: ${SRC_DIR}/util.h ${SRC_DIR}/util.c
-	${CXX} ${OPTS} -c ${SRC_DIR}/util.c -o ${OBJS_DIR}/util.o
-
-${OBJS_DIR}/key.o: ${SRC_DIR}/key.h ${SRC_DIR}/key.c
-	${CXX} ${OPTS} -c ${SRC_DIR}/key.c -o ${OBJS_DIR}/key.o
-
-${OBJS_DIR}/little_black_box.o: ${SRC_DIR}/little_black_box.c ${SRC_DIR}/little_black_box.h ${SRC_DIR}/header.h
-	${CXX} ${OPTS} -c ${SRC_DIR}/little_black_box.c -o ${OBJS_DIR}/little_black_box.o
-
-test_setecAstronomy: ${TEST_OBJS} ${OBJS}
-	${CXX} ${OPTS} ${LIBS} -o ${BIN_DIR}/test_setecAstronomy ${TEST_OBJS} ${OBJS}
-
-${OBJS_DIR}/test_setecAstronomy.o: ${TEST_DIR}/test_util.h ${TEST_DIR}/test_header.h ${TEST_DIR}/test_setecAstronomy.c
-	${CXX} ${OPTS} -c ${TEST_DIR}/test_setecAstronomy.c -o ${OBJS_DIR}/test_setecAstronomy.o
-
-${OBJS_DIR}/test_util.o: ${TEST_DIR}/test_util.h ${SRC_DIR}/util.h ${SRC_DIR}/util.c ${TEST_DIR}/test_util.c
-	${CXX} ${OPTS} -c ${TEST_DIR}/test_util.c -o ${OBJS_DIR}/test_util.o
-
-${OBJS_DIR}/test_header.o: ${SRC_DIR}/header.h ${SRC_DIR}/header.c ${TEST_DIR}/test_header.h ${TEST_DIR}/test_header.c ${TEST_DIR}/unit_test.h
-	${CXX} ${OPTS} -c ${TEST_DIR}/test_header.c -o ${OBJS_DIR}/test_header.o
+tests: 
+	${MAKE} -C tests
 
 clean:
-	rm ${OBJS_DIR}/*.o ${BIN_DIR}/*
+	rm objs/*.o bin/*
 
-.PHONY : clean setecAstronomy test_setecAstronomy all tests
+.PHONY : clean setec_astronomy all tests

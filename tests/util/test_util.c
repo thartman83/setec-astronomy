@@ -14,8 +14,16 @@
 /* GNU General Public License for more details.                              */
 /*****************************************************************************/
 #include "test_util.h"
-#include "../src/util.h"
-#include "unit_test.h"
+#include "../../src/util.h"
+#include "../unit_test.h"
+
+int main(int argc, char **argv)
+{
+	 RUN_TEST(test_int_from_2bytes());
+	 RUN_TEST(test_int_to_2bytes());
+
+	 return 0;
+}
 
 int test_int_from_2bytes()
 {

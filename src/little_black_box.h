@@ -34,7 +34,6 @@ struct name_pass_pair
 };
 
 enum { SA_CRYPT_MODE, SA_DECRYPT_MODE };
-static int lbb_ref_count = 0;
 
 struct little_black_box
 {
@@ -47,8 +46,9 @@ struct little_black_box
 	 int block_size;
 };
 
-int init_lbb(struct little_black_box * lbb, int CRYPT_MODE);
+int get_lbb_ref_count();
 
+int init_lbb(struct little_black_box * lbb, int CRYPT_MODE);
 int open_new_lbb(struct little_black_box * lbb, const char * filename, 
 								 const char * password);
 int open_lbb(struct little_black_box * lbb, const char * filename,

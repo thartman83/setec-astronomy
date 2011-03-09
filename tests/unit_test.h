@@ -18,15 +18,23 @@
 
 #include <stdio.h>
 
+enum {UT_SUCCESS = 0, UT_FAILED = -1, UT_NOT_IMPLEMENTED = -2};
+
 #define test_assert( cond )																				\
 	 if(!(cond)) {																									\
 			printf("FAILED: %s " #cond " at %d in %s\n",								\
 					   __FUNCTION__, __LINE__, __FILE__);			              \
-      return 1;																										\
+      return UT_FAILED;																						\
    }
 
-#define RUN_TEST(fn)														\
-	 if(!fn)																			\
-			printf("SUCCEEDED: %s\n", #fn);
+#define RUN_TEST(fn) {													\
+	 int err = fn;																\
+	 if(err == UT_SUCCESS)												\
+			printf("Succeeded: %s\n", #fn);						\
+	 else if(err == UT_NOT_IMPLEMENTED)						\
+			printf("Not Implemented: %s\n", #fn);			\
+	 else if(err == UT_FAILED)										\
+			printf("Failed: %s\n", #fn);							\
+	 }
 
 #endif//UNIT_TEST_HH_

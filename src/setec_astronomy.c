@@ -1,5 +1,5 @@
 /*****************************************************************************/
-/* test_setecAstronomy.c for Setec Astronomy                                 */
+/* setec_astronomy.c for Setec Astronomy                                     */
 /* Copyright (c) 2011 Thomas Hartman (rokstar83@gmail.com)                   */
 /*                                                                           */
 /* This program is free software; you can redistribute it and/or             */
@@ -13,15 +13,9 @@
 /* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             */
 /* GNU General Public License for more details.                              */
 /*****************************************************************************/
-#include "unit_test.h"
-#include "test_header.h"
-#include "test_util.h"
+#include "little_black_box.h"
 
-int main()
+int main(int argc, char ** argv)
 {
-	 RUN_TEST(test_read_header());
-	 RUN_TEST(test_int_from_2bytes());
-	 RUN_TEST(test_int_to_2bytes());
-
 	 return 0;
 }
