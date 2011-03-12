@@ -1,5 +1,5 @@
 /*****************************************************************************/
-/* test_setecAstronomy.h for Setec Astronomy                                 */
+/* test_setec_astronomy.h for Setec Astronomy                                */
 /* Copyright (c) 2011 Thomas Hartman (rokstar83@gmail.com)                   */
 /*                                                                           */
 /* This program is free software; you can redistribute it and/or             */
@@ -13,8 +13,9 @@
 /* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             */
 /* GNU General Public License for more details.                              */
 /*****************************************************************************/
-#ifndef TEST_SETECASTRONOMY_H_
-#define TEST_SETECASTRONOMY_H_
+#ifndef TEST_SETEC_ASTRONOMY_H_
+#define TEST_SETEC_ASTRONOMY_H_
 
+int test_add_entry();
 
-#endif//TEST_SETECASTRONOMY_H_
+#endif//TEST_SETEC_ASTRONOMY_H_
