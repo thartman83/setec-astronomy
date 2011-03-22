@@ -25,16 +25,24 @@ void init_header(struct setec_astronomy_header * header)
 	 header->salt = NULL;
 	 header->iv_len = 0;
 	 header->iv = NULL;
-	 header->hash_count = 0;
+	 header->digest_len = 0;
+	 header->hmac_digest = NULL;
 }
 
 void free_header(struct setec_astronomy_header * header)
 {	 
+	 header->salt_len = 0;
+
 	 if(header->salt != NULL)
 			free(header->salt);
 
+	 header->iv_len = 0;
 	 if(header->iv != NULL)
 			free(header->iv);
+
+	 header->hmac_digest = 0;
+	 if(header->hmac_digest != NULL)
+			free(header->hmac_digest);
 }
 
 int read_header(struct setec_astronomy_header * header, const char * filename)
@@ -42,10 +50,8 @@ int read_header(struct setec_astronomy_header * header, const char * filename)
 	 FILE * fd = fopen(filename, "rb");
 	 int retval;
 
-	 /* Check to make sure the file opened */
-	 if(fd == NULL) {
+	 if(fd == NULL)
 			return SA_FILE_NOT_FOUND;
-	 }
 
 	 retval = read_header_ext(header, fd);
 
@@ -56,44 +62,45 @@ int read_header(struct setec_astronomy_header * header, const char * filename)
 
 int read_header_ext(struct setec_astronomy_header * header, FILE * fd)
 {
-	 int read_length;
+	 int err;
+	 
+	 err = read_len_data_pair(&header->salt_len, &header->salt, fd);
+	 if(err != SA_SUCCESS)
+			return err;
+	 
+	 err = read_len_data_pair(&header->iv_len, &header->iv, fd);
+	 if(err != SA_SUCCESS)
+			return err;
+	 
+	 err = read_len_data_pair(&header->digest_len, &header->hmac_digest, fd);
+	 if(err != SA_SUCCESS)
+			return err;
+	 
+	 return SA_SUCCESS;
+}
+
+/* Read INT_LEN bytes to determine data length, then read data,
+	 returns SA_SUCCESS on success and SA_NO_DATA on failure.  
+
+	 This function allocates space for data to be freed by caller.  
+	 Recommended that data is set to NULL as preconditions, 
+	 to avoid memory leaks.
+	 This function assumes that fd is a file pointer open for reading.  */
+int read_len_data_pair(int * len, void ** data, FILE * fd)
+{
+	 int read_len;
 	 unsigned char len_buffer[INT_LEN];
 
-	 /* Read the length of the salt */
-	 read_length = fread(len_buffer, sizeof(char), INT_LEN, fd);
-	 if(read_length != INT_LEN) {
+	 read_len = fread(len_buffer, sizeof(char), INT_LEN, fd);
+	 if(read_len != INT_LEN)
 			return SA_NO_DATA;
-	 }
-	 header->salt_len = int_from_2bytes(len_buffer);
-	 
-	 /* Allocate and read the salt */	 
-	 header->salt = malloc(header->salt_len);
-	 read_length = fread(header->salt, sizeof(char), header->salt_len, fd);
-	 if(read_length != header->salt_len) {
-			return SA_NO_DATA;
-	 }
-	 
-	 /* Read the initialization vector length */
-	 read_length = fread(len_buffer, sizeof(char), INT_LEN, fd);
-	 if(read_length != INT_LEN) {
-			return SA_NO_DATA;
-	 }
-	 header->iv_len = int_from_2bytes(len_buffer);
+	 *len = int_from_2bytes(len_buffer);
 
-	 /* Allocate and read the initialization vector */
-	 header->iv = malloc(header->iv_len);
-	 read_length = fread(header->iv, sizeof(char), header->iv_len, fd);
-	 if(read_length != header->iv_len) {
+	 (*data) = malloc(*len);
+	 read_len = fread(*data, sizeof(char), *len, fd);
+	 if(read_len != *len)
 			return SA_NO_DATA;
-	 }
 
-	 /* Read the hash count, the number of times to hash the salt + key */
-	 read_length = fread(len_buffer, sizeof(char), INT_LEN, fd);
-	 if(read_length != INT_LEN) {
-			return SA_NO_DATA;
-	 }
-	 header->hash_count = int_from_2bytes(len_buffer);
-	 
 	 return SA_SUCCESS;
 }
 
@@ -105,7 +112,6 @@ int write_header(const struct setec_astronomy_header * header,
 	 
 	 fd = fopen(filename, "wb");
 
-	 /* check to make sure the file description opened up properly */
 	 if(fd == NULL)
 			return SA_CAN_NOT_OPEN_FILE;
 	 
@@ -118,49 +124,50 @@ int write_header(const struct setec_astronomy_header * header,
 
 int write_header_ext(const struct setec_astronomy_header * header, FILE * fd)
 {
-	 /* Length values in the structure are at maximum 2 bytes */	 
+	 int err;
+
+	 err = write_len_data_pair(header->salt_len, header->salt, fd);
+	 if(err != SA_SUCCESS)
+			return err;
+
+	 err = write_len_data_pair(header->iv_len, header->iv, fd);
+	 if(err != SA_SUCCESS)
+			return err;
+
+	 err = write_len_data_pair(header->digest_len, header->hmac_digest, fd);
+	 if(err != SA_SUCCESS)
+			return err;
+
+	 return SA_SUCCESS;
+}
+
+int write_len_data_pair(int len, void * data, FILE * fd)
+{
 	 unsigned char buf[2];
-	 int write_len;	 
+	 int write_len;
 
-	 /* write the salt_len first */
-	 int_to_2bytes(header->salt_len, buf);
+	 int_to_2bytes(len, buf);
 	 write_len = fwrite(buf, 1, INT_LEN, fd);
-	 if(write_len != INT_LEN) {
+	 if(write_len != INT_LEN)
 			return SA_CAN_NOT_WRITE_FILE;
-	 }
-	 
-	 /* write the salt */
-	 write_len = fwrite(header->salt, 1, header->salt_len, fd);
-	 if(write_len != header->salt_len) {
-			return SA_CAN_NOT_WRITE_FILE;
-	 }
 
-	 /* write the iv length */
-	 int_to_2bytes(header->iv_len, buf);
-	 write_len = fwrite(buf, 1, INT_LEN, fd);	 
-	 if(write_len != INT_LEN) {			
-			return SA_CAN_NOT_WRITE_FILE;
-	 }
-
-	 /* write the iv */
-	 write_len = fwrite(header->iv, 1, header->iv_len, fd);
-	 if(write_len != header->iv_len) {
-			return SA_CAN_NOT_WRITE_FILE;
-	 }
-
-	 /* write the hash count */
-	 int_to_2bytes(header->hash_count, buf);
-	 write_len = fwrite(buf, 1, INT_LEN, fd);
-	 if(write_len != INT_LEN) {
-			return SA_CAN_NOT_WRITE_FILE;
-	 }
+	 write_len = fwrite(data, 1, len, fd);
+	 if(write_len != len)
+			return SA_CAN_NOT_WRITE_FILE;		 
 
 	 return SA_SUCCESS;
 }
 
 int header_len(const struct setec_astronomy_header * header)
 {
-	 return (3 * INT_LEN) + header->salt_len + header->iv_len;
+	 return (3 * INT_LEN) + header->salt_len + header->iv_len + header->digest_len;
+}
+
+void init_random_buffer(void ** buffer, int * buf_len, int len)
+{
+	 (*buf_len) = len;
+	 *buffer = malloc(*buf_len);
+	 set_random(*buffer, *buf_len);
 }
 
 void init_salt(struct setec_astronomy_header * header, int salt_len)

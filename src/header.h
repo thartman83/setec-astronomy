@@ -21,18 +21,27 @@ struct setec_astronomy_header
 {
 	 int salt_len;
 	 void * salt;
+
 	 int iv_len;
 	 void * iv;
-	 int hash_count;
+
+	 int digest_len;
+	 void * hmac_digest;
 };
 
 void init_header(struct setec_astronomy_header * header);
 void free_header(struct setec_astronomy_header * header);
+
 int read_header(struct setec_astronomy_header * header, const char * filename);
 int read_header_ext(struct setec_astronomy_header * header, FILE * fd);
+int read_len_data_pair(int * len, void ** data, FILE * fd);
+
 int write_header(const struct setec_astronomy_header * header, const char * filename);
 int write_header_ext(const struct setec_astronomy_header * header, FILE * fd);
+int write_len_data_pair(int len, void * data, FILE * fd);
+
 int header_len(const struct setec_astronomy_header * header);
+void init_random_buffer(void ** buffer, int * buf_len, int len);
 
 void init_salt(struct setec_astronomy_header * header, int salt_len);
 void init_iv(struct setec_astronomy_header * header, int iv_len);

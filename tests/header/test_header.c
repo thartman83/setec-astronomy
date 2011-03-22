@@ -18,10 +18,12 @@
 #include "../../src/errors.h"
 #include "../unit_test.h"
 
-int main()
-{	 
-	 RUN_TEST(test_read_header());
+#include <string.h>
 
+int main()
+{
+	 RUN_TEST(test_read_header());
+	 RUN_TEST(test_write_header());
 	 return 0;
 }
 
@@ -35,9 +37,9 @@ int test_read_header()
 	 test_assert(read_header(&r_header, GOOD_HEADER_TEST) == SA_SUCCESS);
 
 	 /* Check to make sure that the read and write headers are identical */
-	 test_assert(r_header.salt_len == 1024);
-	 test_assert(r_header.iv_len == 1024);
-	 test_assert(r_header.hash_count == 42);
+	 test_assert(r_header.salt_len == 256);
+	 test_assert(r_header.iv_len == 256);
+	 test_assert(r_header.digest_len == 256);
 
 	 free_header(&r_header);
 
@@ -59,5 +61,33 @@ int test_read_header()
 	 test_assert(read_header(&r_header, NOT_ENOUGH_DATA_TEST) == SA_NO_DATA);
 	 free_header(&r_header);
 
+	 return 0;
+}
+
+int test_write_header()
+{
+	 struct setec_astronomy_header w_header, r_header;
+	 char temp_file[] = TEST_DATA_DIR "temp";
+	 
+	 init_header(&w_header);
+	 init_header(&r_header);
+
+	 init_random_buffer(&w_header.salt, &w_header.salt_len, 256);
+	 init_random_buffer(&w_header.iv, &w_header.iv_len, 1024);
+	 init_random_buffer(&w_header.hmac_digest, &w_header.digest_len, 256);
+
+	 test_assert(write_header(&w_header, temp_file) == SA_SUCCESS);
+	 
+	 test_assert(read_header(&r_header, temp_file) == SA_SUCCESS);
+	 
+	 test_assert(w_header.salt_len == r_header.salt_len);
+	 test_assert(w_header.iv_len == r_header.iv_len);
+	 test_assert(w_header.digest_len == r_header.digest_len);
+	 
+	 test_assert(strncmp(w_header.salt, r_header.salt, w_header.salt_len) == 0);
+	 test_assert(strncmp(w_header.iv, r_header.iv, w_header.iv_len) == 0);
+	 test_assert(strncmp(w_header.hmac_digest, r_header.hmac_digest, 
+											 w_header.digest_len) == 0);
+	 
 	 return 0;
 }

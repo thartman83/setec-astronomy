@@ -22,5 +22,6 @@ static const char NOT_ENOUGH_DATA_TEST[] = TEST_DATA_DIR "not_enough_data";
 static const char GOOD_HEADER_TEST[] = TEST_DATA_DIR "good_header_data";
 
 int test_read_header();
+int test_write_header();
 
 #endif//TEST_HEADER_H_
