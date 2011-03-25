@@ -1,0 +1,6 @@
+Setec Astronomy
+
+Current Status: Not done.
+
+This is a simple cli password locker.  Takes names and a passwords and stores
+it in an encrypted file.
