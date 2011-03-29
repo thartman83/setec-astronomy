@@ -1,13 +1,10 @@
+PROJECT_ROOT=../..
+BIN_DIR=${PROJECT_ROOT}/bin
+SRC_DIR=${PROJECT_ROOT}/src
+OBJS_DIR=${PROJECT_ROOT}/objs
 CC=gcc
 OPTS=-Wall -g
 OBJS=${OBJS_DIR}/test_header.o ${OBJS_DIR}/header.o ${OBJS_DIR}/util.o
-
-ifeq (0,${MAKELEVEL})
-
-all:
-	${MAKE} tests -C ../../
-
-else
 
 ${BIN_DIR}/test_header: ${OBJS}
 	${CC} ${OPTS} -o $@ ${OBJS}
@@ -22,4 +19,7 @@ ${OBJS_DIR}/header.o: ${SRC_DIR}/header.h ${SRC_DIR}/header.c ${SRC_DIR}/errors.
 ${OBJS_DIR}/util.o: ${SRC_DIR}/util.h ${SRC_DIR}/util.c
 	${CC} ${OPTS} -c ${SRC_DIR}/util.c -o $@
 
-endif
+clean:
+	rm ${OBJS} ${BIN_DIR}/test_header
+
+.PHONY: clean

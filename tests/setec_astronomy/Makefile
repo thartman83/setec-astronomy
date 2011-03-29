@@ -1,15 +1,12 @@
+PROJECT_ROOT=../..
+BIN_DIR=${PROJECT_ROOT}/bin
+SRC_DIR=${PROJECT_ROOT}/src
+OBJS_DIR=${PROJECT_ROOT}/objs
 CC=gcc
 OPTS=-Wall -g
 OBJS=${OBJS_DIR}/little_black_box.o ${OBJS_DIR}/test_setec_astronomy.o ${OBJS_DIR}/header.o \
 		 ${OBJS_DIR}/util.o ${OBJS_DIR}/key.o ${OBJS_DIR}/setec_astronomy.o
 LIBS=-lmcrypt -lcrypto
-
-ifeq (0,${MAKELEVEL})
-
-all:
-	${MAKE} tests -C ../../
-
-else
 
 ${BIN_DIR}/test_setec_astronomy: ${OBJS}
 	${CC} ${OPTS} ${LIBS} -o ${BIN_DIR}/test_setec_astronomy ${OBJS}
@@ -35,4 +32,7 @@ ${OBJS_DIR}/util.o: ${SRC_DIR}/util.h ${SRC_DIR}/util.c
 ${OBJS_DIR}/key.o: ${SRC_DIR}/key.h ${SRC_DIR}/key.c
 	${CC} ${OPTS} -c ${SRC_DIR}/key.c -o $@
 
-endif
+clean: 
+	rm ${OBJS} ${BIN_DIR}/test_setec_astronomy
+
+.PHONY: clean

@@ -2,7 +2,7 @@ CC=gcc
 OPTS=-Wall -g
 OBJS=${OBJS_DIR}/little_black_box.o ${OBJS_DIR}/key.o ${OBJS_DIR}/util.o
 OBJS+=${OBJS_DIR}/setec_astronomy.o ${OBJS_DIR}/header.o ${OBJS_DIR}/main.o
-LIBS=-lcrypto -lmcrypt
+LIBS=-lcrypto -lmcrypt -lmhash
 
 ifeq (0, ${MAKELEVEL})
 # can't be called by itself, gets export info from ../Makefile
