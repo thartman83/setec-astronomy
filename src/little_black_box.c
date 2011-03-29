@@ -48,8 +48,6 @@ int init_lbb(struct little_black_box * lbb, int crypt_mode)
 			return SA_CAN_NOT_OPEN_CRYPT_MODULE;
 
 	 lbb->block_size = mcrypt_enc_get_block_size(lbb->md);
-	 lbb->key_len = KEY_SIZE;
-	 lbb->key = calloc(1, lbb->key_len);
 
 	 /* If we are crypting data the buffer needs to be the block size,
 			if we are decrypting the buffer needs to be the MAX_PAIR_SIZE +
@@ -120,7 +118,7 @@ int open_lbb(struct little_black_box * lbb, const char * filename,
 int open_lbb_ext(struct little_black_box * lbb, const char * password)
 {
 	 //TODO: Change to mhash native 
-	 hash_key((unsigned char *)password, strlen(password), lbb->key, &lbb->key_len);
+	 hash_key((unsigned char *)password, strlen(password), &lbb->key, &lbb->key_len);
 	 
 	 if(mcrypt_generic_init(lbb->md, lbb->key, lbb->key_len, lbb->header.iv) < 0)
 			return SA_CAN_NOT_INIT_CRYPT;

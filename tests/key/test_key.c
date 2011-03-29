@@ -1,5 +1,5 @@
 /*****************************************************************************/
-/* key.h for Setec Astronomy                                                 */
+/* test_key.c for Setec Astronomy                                            */
 /* Copyright (c) 2011 Thomas Hartman (rokstar83@gmail.com)                   */
 /*                                                                           */
 /* This program is free software; you can redistribute it and/or             */
@@ -13,14 +13,30 @@
 /* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             */
 /* GNU General Public License for more details.                              */
 /*****************************************************************************/
-#ifndef KEY_H_
-#define KEY_H_
+#include "test_key.h"
+#include "../../src/key.h"
+#include "../unit_test.h"
+#include "../../src/errors.h"
+#include <string.h>
 
-#define SA_KEYGEN_ALGO KEYGEN_MCRYPT
+int main()
+{
+	 RUN_TEST(test_hash_key());
+	 return 0;
+}
 
-static const int DEFAULT_KEY_LEN = 32;
-static const int DEFAULT_SALT_LEN = 32;
+int test_hash_key()
+{
+	 void * key;
+	 int key_len, err;
+	 char pass[] = "The quick brown fox jumps over the lazy dog";
+	 unsigned char verify_key[] = "\236\020}\235\067+\266\202k\330\035\065B\244\031\326>'I~0\264\207\370\313\036\273(th\177B";
 
-int hash_key(char * password, int password_len, void ** key, int * key_len);
+	 err = hash_key(pass, strlen(pass), &key, &key_len);
 
-#endif//KEY_H_
+	 test_assert(err == SA_SUCCESS);
+	 test_assert(memcmp(key, verify_key, key_len) == 0);
+	 
+	 return UT_SUCCESS;
+}
+

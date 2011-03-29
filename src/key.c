@@ -18,22 +18,24 @@
 #include <string.h>
 #include <mhash.h>
 
-int hash_key(unsigned char * password, int password_len, void * key, 
-							int * key_len)
+int hash_key(char * password, int password_len, void ** key, int * key_len)
 {
 	 int err;
-	 KEYGEN keygen_data;
 
 	 *key_len = mhash_get_keygen_max_key_size(SA_KEYGEN_ALGO);
 	 
 	 if(*key_len == 0)
 			*key_len = DEFAULT_KEY_LEN;
+	 
+	 *key = calloc(1, *key_len);
 
-	 err = mhash_keygen(KEYGEN_MCRYPT, MHASH_MD5, key, key_len, password, 
-											password_len);
+	 err = mhash_keygen(SA_KEYGEN_ALGO, MHASH_MD5, 0, *key, *key_len, NULL, 0, 
+											password, password_len);
 
-	 if(err < 0)
+	 if(err < 0) {
+			free(*key);
 			return SA_KEYGEN_FAILED;
+	 }
 
 	 return SA_SUCCESS;
 }

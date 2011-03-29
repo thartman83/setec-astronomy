@@ -6,7 +6,7 @@ CC=gcc
 OPTS=-Wall -g
 OBJS=${OBJS_DIR}/little_black_box.o ${OBJS_DIR}/test_setec_astronomy.o ${OBJS_DIR}/header.o \
 		 ${OBJS_DIR}/util.o ${OBJS_DIR}/key.o ${OBJS_DIR}/setec_astronomy.o
-LIBS=-lmcrypt -lcrypto
+LIBS=-lmcrypt -lmhash
 
 ${BIN_DIR}/test_setec_astronomy: ${OBJS}
 	${CC} ${OPTS} ${LIBS} -o ${BIN_DIR}/test_setec_astronomy ${OBJS}

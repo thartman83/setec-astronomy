@@ -1,5 +1,5 @@
 /*****************************************************************************/
-/* key.h for Setec Astronomy                                                 */
+/* test_key.h for Setec Astronomy                                            */
 /* Copyright (c) 2011 Thomas Hartman (rokstar83@gmail.com)                   */
 /*                                                                           */
 /* This program is free software; you can redistribute it and/or             */
@@ -13,14 +13,9 @@
 /* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             */
 /* GNU General Public License for more details.                              */
 /*****************************************************************************/
-#ifndef KEY_H_
-#define KEY_H_
+#ifndef TEST_KEY_HH_
+#define TEST_KEY_HH_
 
-#define SA_KEYGEN_ALGO KEYGEN_MCRYPT
+int test_hash_key();
 
-static const int DEFAULT_KEY_LEN = 32;
-static const int DEFAULT_SALT_LEN = 32;
-
-int hash_key(char * password, int password_len, void ** key, int * key_len);
-
-#endif//KEY_H_
+#endif//TEST_KEY_HH_

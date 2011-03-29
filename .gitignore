@@ -2,3 +2,5 @@ bin/*
 objs/*
 tests/data
 tests/unit_tests
+*~
+#*#
