@@ -30,11 +30,11 @@ enum {UT_SUCCESS = 0, UT_FAILED = -1, UT_NOT_IMPLEMENTED = -2};
 #define RUN_TEST(fn) {													\
 	 int err = fn;																\
 	 if(err == UT_SUCCESS)												\
-			printf("Succeeded: %s\n", #fn);						\
+			printf("PASS: %s\n", #fn);								\
 	 else if(err == UT_NOT_IMPLEMENTED)						\
-			printf("Not Implemented: %s\n", #fn);			\
+			printf("SKIP: %s\n", #fn);								\
 	 else if(err == UT_FAILED)										\
-			printf("Failed: %s\n", #fn);							\
+			printf("FAIL: %s\n", #fn);								\
 	 }
 
 #endif//UNIT_TEST_HH_
