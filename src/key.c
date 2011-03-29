@@ -14,29 +14,26 @@
 /* GNU General Public License for more details.                              */
 /*****************************************************************************/
 #include "key.h"
+#include "errors.h"
 #include <string.h>
-#include <openssl/sha.h>
+#include <mhash.h>
 
-void hash_key(const void * key, int key_len, int hash_count, void * hash)
+int hash_key(unsigned char * password, int password_len, void * key, 
+							int * key_len)
 {
-	 SHA256_CTX ctx;
-	 unsigned char md[SHA256_DIGEST_LENGTH];
-	 unsigned char input[SHA256_DIGEST_LENGTH];
-	 int x;
+	 int err;
+	 KEYGEN keygen_data;
 
-	 /* Prime the hash */
-	 SHA256_Init(&ctx);
-	 SHA256_Update(&ctx, key, key_len);
-	 SHA256_Final(input, &ctx);
+	 *key_len = mhash_get_keygen_max_key_size(SA_KEYGEN_ALGO);
+	 
+	 if(*key_len == 0)
+			*key_len = DEFAULT_KEY_LEN;
 
-	 hash_count--;
-	 /* Loop the hash hash_count - 1 times */	 
-	 for(x = 0; x < hash_count; ++x) {
-			SHA256_Init(&ctx);
-			SHA256_Update(&ctx, input, SHA256_DIGEST_LENGTH);
-			SHA256_Final(md, &ctx);
-			strncpy((char *)input, (char *)md, SHA256_DIGEST_LENGTH);
-	 }
-		
-	 strncpy((char *)hash, (char *)md, SHA256_DIGEST_LENGTH);
+	 err = mhash_keygen(KEYGEN_MCRYPT, MHASH_MD5, key, key_len, password, 
+											password_len);
+
+	 if(err < 0)
+			return SA_KEYGEN_FAILED;
+
+	 return SA_SUCCESS;
 }

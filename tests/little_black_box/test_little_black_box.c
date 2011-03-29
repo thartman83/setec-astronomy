@@ -96,6 +96,7 @@ int test_open_new_lbb()
 	 close_lbb(&lbb);
 
 	 /* good test */
+	 remove(NON_EXISTING_FILE);
 	 test_assert(SA_SUCCESS == open_new_lbb(&lbb, NON_EXISTING_FILE,
 																					TEST_PASSWORD));	 
 	 close_lbb(&lbb);
@@ -111,6 +112,7 @@ int test_open_lbb()
 	 struct little_black_box lbb;
 	 
 	 /* bad test, trying to open a file that doesn't exist */
+	 remove(NON_EXISTING_FILE);
 	 test_assert(SA_FILE_NOT_FOUND == open_lbb(&lbb, NON_EXISTING_FILE,
 																						 TEST_PASSWORD));
 

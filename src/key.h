@@ -16,6 +16,12 @@
 #ifndef KEY_H_
 #define KEY_H_
 
-void hash_key(const void * key, int key_len, int hash_count, void * hash);
+#define SA_KEYGEN_ALGO KEYGEN_S2K_SALTED
+
+static const int DEFAULT_KEY_LEN = 32;
+static const int DEFAULT_SALT_LEN = 32;
+
+int hash_key(unsigned char * password, int password_len, void * key, 
+						 int * key_len);
 
 #endif//KEY_H_
