@@ -21,6 +21,7 @@
 static const int DEFAULT_KEY_LEN = 32;
 static const int DEFAULT_SALT_LEN = 32;
 
-int hash_key(char * password, int password_len, void ** key, int * key_len);
+int hash_key(const char * password, int password_len, void ** key, 
+						 int * key_len);
 
 #endif//KEY_H_

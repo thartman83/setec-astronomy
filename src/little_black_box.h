@@ -64,23 +64,28 @@ struct little_black_box
 };
 
 int get_lbb_ref_count();
-
 int init_lbb(struct little_black_box * lbb, int CRYPT_MODE);
-
 int open_new_lbb(struct little_black_box * lbb, const char * filename, 
 								 const char * password);
 int open_lbb(struct little_black_box * lbb, const char * filename,
 						 const char * password);
-int open_lbb_ext(struct little_black_box * lbb, const char * password);
 int close_lbb(struct little_black_box * lbb);
 
 int write_lbb(struct little_black_box * lbb, void * buffer, int buffer_len);
 int write_lbb_buffer(struct little_black_box * lbb);
+int write_lbb_pair(struct little_black_box * lbb, const struct name_pass_pair);
+int write_lbb_name_pass(struct little_black_box * lbb, const char name[MAX_NAME_LEN],
+												const char pass[MAX_PASS_LEN]);
 
 int read_next_pair(struct little_black_box * lbb, struct name_pass_pair * pair);
 int read_block(struct little_black_box * lbb);
 
 int init_name_pass_pair(const char * pair_string, struct name_pass_pair * pair);
 int verify_message_digest(struct little_black_box * lbb);
+
+int copy_contents(struct little_black_box * r_lbb,
+									struct little_black_box * w_lbb);
+
+int open_lbb_ext(struct little_black_box * lbb, const char * password);
 
 #endif//LITTLE_BLACK_BOX_H_

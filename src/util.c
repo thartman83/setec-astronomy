@@ -19,6 +19,7 @@
 #include <time.h>
 #include <limits.h>
 #include <string.h>
+#include <stdio.h>
 
 void set_random(void * ptr, int len)
 {
@@ -81,4 +82,24 @@ void pop_data(void * buf, int buf_len, int data_len)
 	 memcpy(tmp, buf + data_len + 1, buf_len - data_len);
 	 memcpy(buf, tmp, buf_len);
 	 free(tmp);
+}
+
+int file_exists(const char * filename)
+{
+	 FILE * fd = fopen(filename, "r");
+
+	 if(fd == NULL)
+			return 0;
+
+	 fclose(fd);
+	 return 1;
+}
+
+char * gen_temp_filename(const char * filename)
+{
+	 char suffix[] = ".temp";
+	 char * retval = calloc(1, strlen(filename) + strlen(suffix) + 1);
+	 snprintf(retval, strlen(filename) + strlen(suffix), "%s%s", filename, suffix);
+
+	 return retval;
 }

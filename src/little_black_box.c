@@ -118,7 +118,7 @@ int open_lbb(struct little_black_box * lbb, const char * filename,
 int open_lbb_ext(struct little_black_box * lbb, const char * password)
 {
 	 //TODO: Change to mhash native 
-	 hash_key((unsigned char *)password, strlen(password), &lbb->key, &lbb->key_len);
+	 hash_key(password, strlen(password), &lbb->key, &lbb->key_len);
 	 
 	 if(mcrypt_generic_init(lbb->md, lbb->key, lbb->key_len, lbb->header.iv) < 0)
 			return SA_CAN_NOT_INIT_CRYPT;
@@ -233,6 +233,20 @@ int write_lbb_buffer(struct little_black_box * lbb)
 	 return SA_SUCCESS;
 }
 
+int write_lbb_pair(struct little_black_box * lbb, const struct name_pass_pair pair)
+{
+	 return write_lbb_name_pass(lbb, pair.name, pair.pass);
+}
+
+int write_lbb_name_pass(struct little_black_box * lbb, 
+												const char name[MAX_NAME_LEN], 
+												const char pass[MAX_PASS_LEN])
+{
+	 char buffer[MAX_PAIR_SIZE];
+	 snprintf(buffer, MAX_PAIR_SIZE, "%s=%s\n", name, pass);
+	 return write_lbb(lbb, buffer, strlen(buffer));
+}
+
 int read_next_pair(struct little_black_box * lbb, struct name_pass_pair * pair)
 {
 	 char pair_string[MAX_PAIR_SIZE];
@@ -308,6 +322,18 @@ int init_name_pass_pair(const char * pair_string, struct name_pass_pair * pair)
 	 strcpy(pair->pass, pair_string + (len + 1));
 	 
 	 return SA_SUCCESS;
+}
+
+int copy_contents(struct little_black_box * r_lbb,
+									struct little_black_box * w_lbb)
+{
+	 int err;
+	 struct name_pass_pair pair;
+
+	 while((err = read_next_pair(r_lbb, &pair)) == SA_SUCCESS)
+			write_lbb_pair(w_lbb, pair);
+
+	 return (err == SA_NO_MORE_PAIRS ? SA_SUCCESS : err);
 }
 
 int verify_message_digest(struct little_black_box * lbb)

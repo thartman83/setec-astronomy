@@ -16,6 +16,13 @@
 #ifndef TEST_SETEC_ASTRONOMY_H_
 #define TEST_SETEC_ASTRONOMY_H_
 
+static const char NON_EXISTING_FILE[] = "../tests/data/file_does_not_exists";
+static const char TEST_PASSWORD[] = "foobarbaz";
+static const char TEST_NAME[] = "test_name";
+static const char TEST_PASS[] = "test_password";
+static const char TEST_NAME2[] = "second_name";
+static const char TEST_PASS2[] = "second_pass";
+
 int test_add_entry();
 
 #endif//TEST_SETEC_ASTRONOMY_H_
