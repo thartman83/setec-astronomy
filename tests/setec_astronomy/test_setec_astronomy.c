@@ -26,6 +26,7 @@
 int main()
 {	 
 	 RUN_TEST(test_add_entry());
+	 RUN_TEST(test_del_entry());
 
 	 return 0;
 }
@@ -36,8 +37,10 @@ int test_add_entry()
 	 char pass_buff[MAX_PASS_LEN];
 
 	 fd = fopen(NON_EXISTING_FILE, "r");
-	 if(fd != NULL)
+	 if(fd != NULL) {
 			remove(NON_EXISTING_FILE);
+			fclose(fd);
+	 }
 
 	 /* First test, new file single entry */
 	 test_assert(add_name_pass(NON_EXISTING_FILE, TEST_PASSWORD, TEST_NAME, 
@@ -56,6 +59,55 @@ int test_add_entry()
 	 test_assert(get_pass_by_name(NON_EXISTING_FILE, TEST_PASSWORD, TEST_NAME, 
 																pass_buff) == SA_SUCCESS);
 	 test_assert(strncmp(TEST_PASS, pass_buff, MAX_PASS_LEN) == 0);
+	 
+	 return UT_SUCCESS;
+}
+
+int test_del_entry()
+{
+	 FILE * fd;
+	 char pass_buff[MAX_PASS_LEN];
+	 
+	 fd = fopen(NON_EXISTING_FILE, "r");
+	 if(fd != NULL) {
+			remove(NON_EXISTING_FILE);
+			fclose(fd);
+	 }
+
+	 /* First test, new file single entry then delete */
+	 test_assert(add_name_pass(NON_EXISTING_FILE, TEST_PASSWORD, TEST_NAME, 
+														 TEST_PASS) == SA_SUCCESS);
+	 test_assert(get_pass_by_name(NON_EXISTING_FILE, TEST_PASSWORD, TEST_NAME, 
+																pass_buff) == SA_SUCCESS);
+	 test_assert(strncmp(TEST_PASS, pass_buff, MAX_PASS_LEN) == 0);
+
+	 test_assert(del_name_pass(NON_EXISTING_FILE, TEST_PASSWORD, TEST_NAME) ==
+							 SA_SUCCESS);
+
+	 test_assert(get_pass_by_name(NON_EXISTING_FILE, TEST_PASSWORD, TEST_NAME,
+																pass_buff) == SA_NAME_NOT_FOUND);
+
+	 /* Second test, new file, multiple entries then delete */
+	 remove(NON_EXISTING_FILE);
+	 test_assert(add_name_pass(NON_EXISTING_FILE, TEST_PASSWORD, TEST_NAME, 
+														 TEST_PASS) == SA_SUCCESS);
+	 test_assert(get_pass_by_name(NON_EXISTING_FILE, TEST_PASSWORD, TEST_NAME, 
+																pass_buff) == SA_SUCCESS);
+	 test_assert(strncmp(TEST_PASS, pass_buff, MAX_PASS_LEN) == 0);
+	 
+	 test_assert(add_name_pass(NON_EXISTING_FILE, TEST_PASSWORD, TEST_NAME2,
+														 TEST_PASS2) == SA_SUCCESS);
+	 test_assert(get_pass_by_name(NON_EXISTING_FILE, TEST_PASSWORD, TEST_NAME2, 
+																pass_buff) == SA_SUCCESS);
+	 test_assert(strncmp(TEST_PASS2, pass_buff, MAX_PASS_LEN) == 0);
+
+	 test_assert(del_name_pass(NON_EXISTING_FILE, TEST_PASSWORD, TEST_NAME) ==
+							 SA_SUCCESS);
+	 test_assert(get_pass_by_name(NON_EXISTING_FILE, TEST_PASSWORD, TEST_NAME,
+									pass_buff) ==	 SA_NAME_NOT_FOUND);
+	 test_assert(get_pass_by_name(NON_EXISTING_FILE, TEST_PASSWORD, TEST_NAME2,
+									pass_buff) == SA_SUCCESS);
+	 test_assert(strncmp(TEST_PASS2, pass_buff, MAX_PASS_LEN) == 0);	 	 	 
 	 
 	 return UT_SUCCESS;
 }

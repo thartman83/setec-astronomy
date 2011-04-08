@@ -22,6 +22,9 @@ int add_name_pass(const char * password_file, const char * master_password,
 int append_name_pass(const char * password_file, const char * master_password,
 										 const char * name, const char * password);
 
+int del_name_pass(const char * password_file, const char * master_password,
+									const char * name);
+
 int get_pass_by_name(const char * password_file, const char * master_password,
 										 const char * name, char * password);
 

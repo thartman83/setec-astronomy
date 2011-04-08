@@ -104,6 +104,54 @@ int append_name_pass(const char * password_file, const char * master_password,
 	 return err;
 }
 
+int del_name_pass(const char * password_file, const char * master_password,
+									const char * name)
+{
+	 struct little_black_box r_lbb;
+	 struct little_black_box w_lbb;
+	 struct name_pass_pair pair;
+	 int err;
+	 char * temp_password_file;
+
+	 temp_password_file = gen_temp_filename(password_file);
+	 if(rename(password_file, temp_password_file) != 0)
+			return SA_COULD_NOT_RENAME;
+
+	 err = open_lbb(&r_lbb, temp_password_file, master_password);
+	 if(err != SA_SUCCESS) {
+			rename(temp_password_file, password_file);
+			free(temp_password_file);
+			return err;
+	 }
+	 
+	 err = open_new_lbb(&w_lbb, password_file, master_password);
+	 if(err != SA_SUCCESS) {
+			rename(temp_password_file, password_file);
+			free(temp_password_file);
+			close_lbb(&r_lbb);			
+			return err;
+	 }
+
+	 while((err = read_next_pair(&r_lbb, &pair)) == SA_SUCCESS) {
+			if(strncmp(pair.name, name, MAX_NAME_LEN) != 0) {
+				 err = write_lbb_pair(&w_lbb, pair);
+				 if(err != SA_SUCCESS)
+						break;
+			}
+	 }
+
+	 if(err != SA_NO_MORE_PAIRS)
+			rename(temp_password_file, password_file);
+	 else
+			remove(temp_password_file);
+	 
+	 free(temp_password_file);
+	 close_lbb(&w_lbb);
+	 close_lbb(&r_lbb);
+	 	 
+	 return (err > 0 ? SA_SUCCESS : err);
+}
+
 int get_pass_by_name(const char * password_file, const char * master_password,
 										 const char * name, char * pass)
 {
