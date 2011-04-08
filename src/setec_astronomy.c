@@ -37,37 +37,14 @@ static struct option long_options[] =
 	 {0,0,0,0}
 };
 
-int get_password(const char * password_file, const char * master_password,
-								 const char * name, char * pass)
-{
-	 struct little_black_box lbb;
-	 struct name_pass_pair pair;	 
-	 int err;
-
-	 err = open_lbb(&lbb, password_file, master_password);
-	 if(err != SA_SUCCESS)
-			return err;
-
-	 while((err = read_next_pair(&lbb, &pair)) == SA_SUCCESS) {
-			if(strncmp(pair.name, name, MAX_NAME_LEN) == 0) {
-				 strncpy(pass, pair.pass, MAX_PASS_LEN);
-				 break;
-			}
-	 }
-
-	 close_lbb(&lbb);
-
-	 return (err == SA_NO_MORE_PAIRS) ? SA_NAME_NOT_FOUND : err;
-}
-
-int add_entry(const char * password_file, const char * master_password, 
-							const char * name, const char * password)
+int add_name_pass(const char * password_file, const char * master_password, 
+									const char * name, const char * password)
 {
 	 struct little_black_box lbb;
 	 int err;
 
 	 if( file_exists(password_file) ) {
-			err = append_entry(password_file, master_password, name, password);
+			err = append_name_pass(password_file, master_password, name, password);
 	 } else {
 			err = open_new_lbb(&lbb, password_file, master_password);
 			if( err == SA_SUCCESS ) {
@@ -79,8 +56,8 @@ int add_entry(const char * password_file, const char * master_password,
 	 return err;
 }
 
-int append_entry(const char * password_file, const char * master_password,
-								 const char * name, const char * password)
+int append_name_pass(const char * password_file, const char * master_password,
+										 const char * name, const char * password)
 {
 	 struct little_black_box r_lbb;
 	 struct little_black_box w_lbb;
@@ -125,4 +102,27 @@ int append_entry(const char * password_file, const char * master_password,
 	 close_lbb(&r_lbb);
 	 	 
 	 return err;
+}
+
+int get_pass_by_name(const char * password_file, const char * master_password,
+										 const char * name, char * pass)
+{
+	 struct little_black_box lbb;
+	 struct name_pass_pair pair;	 
+	 int err;
+
+	 err = open_lbb(&lbb, password_file, master_password);
+	 if(err != SA_SUCCESS)
+			return err;
+
+	 while((err = read_next_pair(&lbb, &pair)) == SA_SUCCESS) {
+			if(strncmp(pair.name, name, MAX_NAME_LEN) == 0) {
+				 strncpy(pass, pair.pass, MAX_PASS_LEN);
+				 break;
+			}
+	 }
+
+	 close_lbb(&lbb);
+
+	 return (err == SA_NO_MORE_PAIRS) ? SA_NAME_NOT_FOUND : err;
 }

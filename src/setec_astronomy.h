@@ -16,13 +16,13 @@
 #ifndef SETEC_ASTRONOMY_H_
 #define SETEC_ASTRONOMY_H_
 
-int add_entry(const char * password_file, const char * master_password,
-							const char * name, const char * password);
+int add_name_pass(const char * password_file, const char * master_password,
+									const char * name, const char * password);
 
-int append_entry(const char * password_file, const char * master_password,
-								 const char * name, const char * password);
+int append_name_pass(const char * password_file, const char * master_password,
+										 const char * name, const char * password);
 
-int get_password(const char * password_file, const char * master_password,
-								 const char * name, char * password);
+int get_pass_by_name(const char * password_file, const char * master_password,
+										 const char * name, char * password);
 
 #endif//SETEC_ASTRONOMY_H_
