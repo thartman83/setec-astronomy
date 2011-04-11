@@ -21,22 +21,6 @@
 #include <getopt.h>
 #include <stdlib.h>
 
-static const char DEFAULT_PASSWORD_FILE[]="~/.setec_astronomy";
-
-static struct option long_options[] = 
-{
-	 {"add", no_argument, 0, 'a'},
-	 {"delete", no_argument, 0, 'd'},
-	 {"get", required_argument, 0, 'g'},
-	 {"help",no_argument, 0, 'h'},
-	 {"name", required_argument, 0, 'n'},
-	 {"password", required_argument, 0, 'p'},
-	 {"generate", no_argument, 0, 'g'},
-	 {"file", required_argument, 0, 'f'},
-	 {"init", no_argument, 0, 'i'},
-	 {0,0,0,0}
-};
-
 int add_name_pass(const char * password_file, const char * master_password, 
 									const char * name, const char * password)
 {
