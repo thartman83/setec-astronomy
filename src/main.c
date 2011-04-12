@@ -53,7 +53,19 @@ struct Action
 
 void print_help() 
 {
-	 
+	 printf("setec_astronomy:\n");
+	 printf("\tActions:\n");
+	 printf("\t\t-a: add an entry to the password file.\n");
+	 printf("\t\t\tRequires a name (-n) and password (-n).\n");
+	 printf("\t\t-d: delete an entry from the password file.\n");
+	 printf("\t\t\tRequires a name (-n).\n");
+	 printf("\t\t-g: get the password for an entry in the password file.\n");
+	 printf("\t\t\tRequires a name (-n).\n");
+	 printf("\tAction arguments:\n");
+	 printf("\t\t-n: specifies the name of the entry within the password "
+					"file.\n");
+	 printf("\t\t-p: specifies the password for the entry within the password "
+					"file.\n");
 }
 
 struct Action parse_args(int argc, char ** argv)
