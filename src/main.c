@@ -15,13 +15,17 @@
 /*****************************************************************************/
 #include "setec_astronomy.h"
 #include "little_black_box.h"
+#include "errors.h"
 #include <getopt.h>
+#include <termios.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-static const char DEFAULT_PASSWORD_FILE[]="~/.setec_astronomy";
+static const char PASS_FILE_NAME[]=".setec_astronomy";
 
 // static struct char short_opts[] = "adg:hn:p:gf:";
-static char short_opts[] = "adg:hn:p:";
+static char short_opts[] = "adghn:p:";
 static struct option long_options[] = 
 {
 	 {"add", no_argument, 0, 'a'},
@@ -50,6 +54,22 @@ struct Action
 	 char name[MAX_NAME_LEN];
 	 char pass[MAX_PASS_LEN];
 };
+
+char * get_default_pass_file()
+{
+	 char * retval;
+	 char * home_dir = getenv("HOME");
+	 int len;
+
+	 if(home_dir == NULL)
+			return NULL;
+
+	 len = strlen(home_dir) + strlen(PASS_FILE_NAME) + 2;
+	 retval = malloc(sizeof(char) * len);
+	 snprintf(retval, len, "%s/%s", home_dir, PASS_FILE_NAME);
+
+	 return retval;
+}
 
 void print_help() 
 {
@@ -124,11 +144,9 @@ int analyze_args(struct Action action)
 				 }
 				 break;
 			case AT_HELP:
-				 print_help();
 				 return 1;
 			case AT_ERR:
 				 printf("Invalid operation or argument passed.\n");
-				 print_help();
 				 return -1;
 			default:
 				 return -1;
@@ -137,30 +155,81 @@ int analyze_args(struct Action action)
 	 return 0;
 }
 
-int main(int argc, char ** argv)
+int get_password(char ** pass)
 {
-	 struct Action action;
-	 int err;
+	 struct termios old, new;
+	 size_t read_len;
 
-	 action = parse_args(argc, argv);
-	 err = analyze_args(action);
+	 if(tcgetattr(fileno(stdin), &old) != 0)
+			return SA_NO_TERM_GET;
 
-	 if(err != 0)
-			return (err > 0 ? 0 : err);
+	 new = old;
+	 new.c_lflag &= ~ECHO;
 
-	 switch(action.action_type) {
-			case AT_ADD:
-				 printf("Adding name=%s and password=%s to password file.", action.name, action.pass);
-				 break;
-			case AT_DEL:
-				 printf("Deleting name=%s from password file.", action.name);
-				 break;
-			case AT_GET:
-				 printf("Getting password for name=%s from password file.", action.name);
-				 break;
-			default:
-				 return -1;
+	 if(tcsetattr(fileno(stdin), TCSAFLUSH, &new) != 0)
+			return SA_NO_TERM_SET;
+
+	 printf("password:");
+
+	 read_len = getline(pass, &read_len, stdin);
+	 
+	 (void) tcsetattr(fileno(stdin), TCSAFLUSH, &old);
+
+	 printf("\n");
+
+	 if(read_len > MAX_PASS_LEN) {
+			printf("Password is too long.  Maximum password length is %d.", 
+						 MAX_PASS_LEN);
+			memset(*pass, '\0', MAX_PASS_LEN);
+			free(*pass);
+			return SA_PASS_TOO_LONG;
 	 }
 
-	 return 0;
+	 return SA_SUCCESS;
+}
+
+int main(int argc, char ** argv)
+{
+	 struct Action act;
+	 int err;
+	 char * master_password = NULL;
+	 char pass[MAX_PASS_LEN];
+	 char * pass_file;
+
+	 act = parse_args(argc, argv);
+	 err = analyze_args(act);
+
+	 if(err != 0) {
+			print_help();
+			return (err > 0 ? 0 : err);
+	 }
+
+	 err = get_password(&master_password);
+	 pass_file = get_default_pass_file();
+
+	 switch(act.action_type) {
+			case AT_ADD:
+				 err = add_name_pass(pass_file, master_password, act.name,
+														 act.pass);
+				 break;
+			case AT_DEL:
+				 err = del_name_pass(pass_file, master_password, act.name);
+				 break;
+			case AT_GET:
+				 err = get_pass_by_name(pass_file, master_password, act.name, 
+																pass);
+				 if( err == SA_SUCCESS )
+						printf(" Password for %s : %s\n", act.name, pass);
+
+				 memset(pass, '\0', MAX_PASS_LEN);
+				 break;
+			default:
+				 err = -1;
+	 }
+
+	 memset(master_password, '\0', MAX_PASS_LEN);
+	 free(master_password);
+	 free(pass_file);
+
+	 return err;
 }

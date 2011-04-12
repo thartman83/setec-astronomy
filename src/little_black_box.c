@@ -88,6 +88,9 @@ int open_new_lbb(struct little_black_box * lbb, const char * filename,
 	 }
 
 	 lbb->fd = fopen(filename, "wb");
+	 if(lbb->fd == NULL)
+			return SA_CAN_NOT_OPEN_FILE;
+
 	 write_header_ext(&(lbb->header), lbb->fd);
 
 	 return open_lbb_ext(lbb, password);

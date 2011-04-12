@@ -38,6 +38,9 @@ enum { SA_SUCCESS = 0,
 			 SA_KEYGEN_FAILED = -18,
 			 SA_NAME_NOT_FOUND = -19,
 			 SA_COULD_NOT_RENAME = -20,
+			 SA_PASS_TOO_LONG = -21,
+			 SA_NO_TERM_SET = -22,
+			 SA_NO_TERM_GET = -23,
 			 SA_NOT_IMPLEMENTED = -100};
 			 
 #endif//ERRORS_HH_
