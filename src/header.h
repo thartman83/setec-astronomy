@@ -19,9 +19,6 @@
 
 struct setec_astronomy_header
 {
-	 int salt_len;
-	 void * salt;
-
 	 int iv_len;
 	 void * iv;
 
@@ -43,7 +40,6 @@ int write_len_data_pair(int len, void * data, FILE * fd);
 int header_len(const struct setec_astronomy_header * header);
 void init_random_buffer(void ** buffer, int * buf_len, int len);
 
-void init_salt(struct setec_astronomy_header * header, int salt_len);
 void init_iv(struct setec_astronomy_header * header, int iv_len);
 
 #endif//HEADER_H_
