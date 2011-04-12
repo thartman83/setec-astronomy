@@ -18,6 +18,5 @@
 
 int test_int_from_2bytes();
 int test_int_to_2bytes();
-int test_create_temp_filename();
 
 #endif//TEST_UTIL_H_
