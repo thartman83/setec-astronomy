@@ -2,6 +2,7 @@ CC=gcc
 OPTS=-Wall -g
 OBJS=${OBJS_DIR}/little_black_box.o ${OBJS_DIR}/key.o ${OBJS_DIR}/util.o
 OBJS+=${OBJS_DIR}/setec_astronomy.o ${OBJS_DIR}/header.o ${OBJS_DIR}/main.o
+OBJS+=${OBJS_DIR}/errors.o
 LIBS=-lcrypto -lmcrypt -lmhash
 
 ifeq (0, ${MAKELEVEL})
@@ -30,6 +31,9 @@ ${OBJS_DIR}/util.o: util.h util.c
 
 ${OBJS_DIR}/header.o: header.h header.c util.h errors.h
 	${CC} ${OPTS} -c header.c -o $@
+
+${OBJS_DIR}/errors.o: errors.h errors.c
+	${CC} ${OPTS} -c errors.c -o $@
 
 .PHONY : setec_astronomy
 

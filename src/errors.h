@@ -42,5 +42,7 @@ enum { SA_SUCCESS = 0,
 			 SA_NO_TERM_SET = -22,
 			 SA_NO_TERM_GET = -23,
 			 SA_NOT_IMPLEMENTED = -100};
+
+void print_err_msg(int err);
 			 
 #endif//ERRORS_HH_

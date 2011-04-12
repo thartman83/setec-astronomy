@@ -201,7 +201,12 @@ int main(int argc, char ** argv)
 
 	 if(err != 0) {
 			print_help();
-			return (err > 0 ? 0 : err);
+			if(err < 0) {
+				 print_err_msg(err);
+				 return err;
+			}else {
+				 return 0;
+			}
 	 }
 
 	 err = get_password(&master_password);
@@ -230,6 +235,9 @@ int main(int argc, char ** argv)
 	 memset(master_password, '\0', MAX_PASS_LEN);
 	 free(master_password);
 	 free(pass_file);
+
+	 if(err < 0)
+			print_err_msg(err);
 
 	 return err;
 }
