@@ -21,6 +21,8 @@
 
 void init_header(struct setec_astronomy_header * header)
 {
+	 header->salt_len = 0;
+	 header->salt = NULL;
 	 header->iv_len = 0;
 	 header->iv = NULL;
 	 header->digest_len = 0;
@@ -28,7 +30,12 @@ void init_header(struct setec_astronomy_header * header)
 }
 
 void free_header(struct setec_astronomy_header * header)
-{
+{	 
+	 header->salt_len = 0;
+
+	 if(header->salt != NULL)
+			free(header->salt);
+
 	 header->iv_len = 0;
 	 if(header->iv != NULL)
 			free(header->iv);
@@ -56,6 +63,10 @@ int read_header(struct setec_astronomy_header * header, const char * filename)
 int read_header_ext(struct setec_astronomy_header * header, FILE * fd)
 {
 	 int err;
+	 
+	 err = read_len_data_pair(&header->salt_len, &header->salt, fd);
+	 if(err != SA_SUCCESS)
+			return err;
 	 
 	 err = read_len_data_pair(&header->iv_len, &header->iv, fd);
 	 if(err != SA_SUCCESS)
@@ -115,6 +126,10 @@ int write_header_ext(const struct setec_astronomy_header * header, FILE * fd)
 {
 	 int err;
 
+	 err = write_len_data_pair(header->salt_len, header->salt, fd);
+	 if(err != SA_SUCCESS)
+			return err;
+
 	 err = write_len_data_pair(header->iv_len, header->iv, fd);
 	 if(err != SA_SUCCESS)
 			return err;
@@ -145,7 +160,7 @@ int write_len_data_pair(int len, void * data, FILE * fd)
 
 int header_len(const struct setec_astronomy_header * header)
 {
-	 return (2 * INT_LEN) + header->iv_len + header->digest_len;
+	 return (3 * INT_LEN) + header->salt_len + header->iv_len + header->digest_len;
 }
 
 void init_random_buffer(void ** buffer, int * buf_len, int len)
@@ -153,6 +168,15 @@ void init_random_buffer(void ** buffer, int * buf_len, int len)
 	 (*buf_len) = len;
 	 *buffer = malloc(*buf_len);
 	 set_random(*buffer, *buf_len);
+}
+
+void init_salt(struct setec_astronomy_header * header, int salt_len)
+{
+	 /* Allocate the salt */
+	 header->salt_len = salt_len;
+	 header->salt = malloc(salt_len);
+	 
+	 set_random(header->salt, header->salt_len);
 }
 
 void init_iv(struct setec_astronomy_header * header, int iv_len)

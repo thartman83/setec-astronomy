@@ -78,6 +78,7 @@ int open_new_lbb(struct little_black_box * lbb, const char * filename,
 			return SA_INVALID_IV_SIZE;
 
 	 init_iv(&(lbb->header), iv_size);
+	 init_salt(&(lbb->header), 0);
 	 
 	 /* Check to see if the filename already exists, no clobbering */
 	 tmp_fd = fopen(filename, "rb");

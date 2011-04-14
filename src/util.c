@@ -64,6 +64,18 @@ unsigned int time_seed ()
 	 return seed;
 }
 
+char * create_temp_filename(const char * filename)
+{
+	 char * retval;
+	 /* Create a temporary file to move the new data to */
+	 retval = (char*)malloc(strlen(filename) + 5);
+	 strncpy(retval, filename, strlen(filename));
+	 strncpy(retval + strlen(filename), ".tmp", 4);
+	 retval[strlen(filename)+4] = '\0';
+
+	 return retval;
+}
+
 void pop_data(void * buf, int buf_len, int data_len)
 {
 	 char * tmp = calloc(sizeof(char), buf_len);

@@ -22,6 +22,7 @@ void set_random(void * ptr, int len);
 int int_from_2bytes(unsigned char buf[INT_LEN]);
 void int_to_2bytes(int val, unsigned char buffer[INT_LEN]);
 unsigned int time_seed();
+char * create_temp_filename(const char * filename);
 void pop_data(void * buf, int buf_len, int data_len);
 int file_exists(const char * filename);
 char * gen_temp_filename(const char * filename);
