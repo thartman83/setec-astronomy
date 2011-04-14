@@ -23,6 +23,7 @@ int main(int argc, char **argv)
 {
 	 RUN_TEST(test_int_from_2bytes());
 	 RUN_TEST(test_int_to_2bytes());
+	 RUN_TEST(test_create_temp_filename());
 
 	 return 0;
 }
@@ -52,4 +53,16 @@ int test_int_to_2bytes()
 	 test_assert(buf[0] == 204 && buf[1] == 5);
 	 
 	 return 0;
+}
+
+int test_create_temp_filename()
+{
+	 char * temp_name;
+
+	 temp_name = create_temp_filename("foobarbaz\0");
+	 test_assert(strcmp(temp_name, "foobarbaz.tmp\0") == 0);
+
+	 free(temp_name);
+	 
+	 return UT_SUCCESS;
 }
