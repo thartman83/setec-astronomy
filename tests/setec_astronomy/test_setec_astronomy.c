@@ -33,14 +33,9 @@ int main()
 
 int test_add_entry()
 {
-	 FILE * fd;	 
 	 char pass_buff[MAX_PASS_LEN];
 
-	 fd = fopen(NON_EXISTING_FILE, "r");
-	 if(fd != NULL) {
-			remove(NON_EXISTING_FILE);
-			fclose(fd);
-	 }
+	 remove(NON_EXISTING_FILE);
 
 	 /* First test, new file single entry */
 	 test_assert(add_name_pass(NON_EXISTING_FILE, TEST_PASSWORD, TEST_NAME, 
