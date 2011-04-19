@@ -54,7 +54,6 @@ int test_init_lbb()
 	 /* Now check that the various structure members are set properly */
 	 test_assert(lbb.md != NULL);
 	 test_assert(lbb.fd == NULL);
-	 test_assert(get_lbb_ref_count() == 1);
 	 test_assert(lbb.data_len == 0);
 	 test_assert(lbb.crypt_mode == SA_CRYPT_MODE);
 	 
@@ -70,7 +69,6 @@ int test_init_lbb()
 
 	 test_assert(lbb.md != NULL);
 	 test_assert(lbb.fd == NULL);
-	 test_assert(get_lbb_ref_count() == 1);
 	 test_assert(lbb.data_len == 0);
 	 test_assert(lbb.crypt_mode == SA_DECRYPT_MODE);
 	 
@@ -145,12 +143,8 @@ int test_close_lbb()
 	 /* test a lbb in decrypt mode */
 	 test_assert(SA_SUCCESS == open_lbb(&lbb, EXISTING_FILE, TEST_PASSWORD));
 	 
-	 /* check that the reference count is at 1 */
-	 test_assert(get_lbb_ref_count() == 1);
-	 
 	 /* close the lbb and make sure the count is back down to 0 */
 	 test_assert(close_lbb(&lbb) == SA_SUCCESS);
-	 test_assert(get_lbb_ref_count() == 0);
 	 	 
 	 return UT_SUCCESS;
 }

@@ -18,6 +18,7 @@
 #include "../unit_test.h"
 #include "../../src/errors.h"
 #include <string.h>
+#include <stdlib.h>
 
 int main()
 {
@@ -36,6 +37,8 @@ int test_hash_key()
 
 	 test_assert(err == SA_SUCCESS);
 	 test_assert(memcmp(key, verify_key, key_len) == 0);
+	 
+	 free(key);
 	 
 	 return UT_SUCCESS;
 }

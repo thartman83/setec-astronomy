@@ -79,7 +79,7 @@ char * create_temp_filename(const char * filename)
 void pop_data(void * buf, int buf_len, int data_len)
 {
 	 char * tmp = calloc(sizeof(char), buf_len);
-	 memcpy(tmp, buf + data_len + 1, buf_len - data_len);
+	 memcpy(tmp, buf + data_len + 1, buf_len - data_len - 1);
 	 memcpy(buf, tmp, buf_len);
 	 free(tmp);
 }

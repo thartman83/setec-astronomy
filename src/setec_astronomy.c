@@ -32,9 +32,9 @@ int add_name_pass(const char * password_file, const char * master_password,
 	 } else {
 			err = open_new_lbb(&lbb, password_file, master_password);
 			if( err == SA_SUCCESS ) {
-				 err = write_lbb_name_pass(&lbb, name, password);
-				 close_lbb(&lbb);
+				 err = write_lbb_name_pass(&lbb, name, password);			
 			}
+			close_lbb(&lbb);
 	 }
 	 
 	 return err;

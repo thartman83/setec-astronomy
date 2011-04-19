@@ -20,10 +20,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-static int lbb_ref_count = 0;
-
-int get_lbb_ref_count() {return lbb_ref_count;}
-
 int init_lbb(struct little_black_box * lbb, int crypt_mode)
 {
 	 int buffer_size;
@@ -57,8 +53,6 @@ int init_lbb(struct little_black_box * lbb, int crypt_mode)
 									MAX_PAIR_SIZE + lbb->block_size);
 	 lbb->buffer = calloc(1, buffer_size);
 
-	 lbb_ref_count++;
-
 	 return SA_SUCCESS;
 }
 
@@ -77,8 +71,8 @@ int open_new_lbb(struct little_black_box * lbb, const char * filename,
 	 if(iv_size < 0)
 			return SA_INVALID_IV_SIZE;
 
-	 init_iv(&(lbb->header), iv_size);
-	 init_salt(&(lbb->header), 0);
+	 init_random_buffer(&(lbb->header.iv), &(lbb->header.iv_len), iv_size);
+	 init_random_buffer(&(lbb->header.salt), &(lbb->header.salt_len), 0);
 	 
 	 /* Check to see if the filename already exists, no clobbering */
 	 tmp_fd = fopen(filename, "rb");
@@ -146,11 +140,8 @@ int close_lbb(struct little_black_box * lbb)
 	 /* deinit and close the mcrypt descriptor (if necessary) */
 	 mcrypt_generic_deinit(lbb->md);
 
-	 lbb_ref_count--;
-
 	 /* if this the last little black box to be closed kill the module as well */
-	 if(lbb_ref_count == 0)
-			mcrypt_module_close(lbb->md);
+	 mcrypt_module_close(lbb->md);
 
 	 /* zero out the buffer before freeing it */
 	 if(lbb->buffer != NULL) {

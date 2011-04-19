@@ -198,21 +198,3 @@ void init_random_buffer(void ** buffer, int * buf_len, int len)
 	 *buffer = malloc(*buf_len);
 	 set_random(*buffer, *buf_len);
 }
-
-void init_salt(struct setec_astronomy_header * header, int salt_len)
-{
-	 /* Allocate the salt */
-	 header->salt_len = salt_len;
-	 header->salt = malloc(salt_len);
-	 
-	 set_random(header->salt, header->salt_len);
-}
-
-void init_iv(struct setec_astronomy_header * header, int iv_len)
-{
-	 /* Allocate the IV */
-	 header->iv_len = iv_len;
-	 header->iv = malloc(iv_len);
-
-	 set_random(header->iv, header->iv_len);
-}
