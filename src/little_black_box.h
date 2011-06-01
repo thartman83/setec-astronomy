@@ -21,7 +21,8 @@
 
 static const char CRYPT_ALGO[] = "rijndael-256";
 static const char CRYPT_MODE[] = "cbc";
-static const int KEY_SIZE = 32;
+static const int KEY_LEN = 32;
+static const int DEFAULT_SALT_LEN = 32;
 
 enum {MAX_NAME_LEN = 50, 
 			MAX_PASS_LEN = 25, 

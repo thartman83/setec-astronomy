@@ -15,10 +15,10 @@
 /*****************************************************************************/
 #include "little_black_box.h"
 #include "errors.h"
-#include "key.h"
 #include "util.h"
 #include <string.h>
 #include <stdlib.h>
+#include <openssl/evp.h>
 
 int init_lbb(struct little_black_box * lbb, int crypt_mode)
 {
@@ -114,12 +114,21 @@ int open_lbb(struct little_black_box * lbb, const char * filename,
 
 int open_lbb_ext(struct little_black_box * lbb, const char * password)
 {
-	 //TODO: Change to mhash native 
-	 hash_key(password, strlen(password), &lbb->key, &lbb->key_len);
+	 int err;
+	 
+	 lbb->key_len = KEY_LEN;
+	 lbb->key = malloc(lbb->key_len);
+
+	 err = PKCS5_PBKDF2_HMAC_SHA1(password, strlen(password), lbb->header.salt, 
+																lbb->header.salt_len, lbb->header.hash_count,
+																lbb->key_len, lbb->key);
+	 
+//	 if(err != SA_SUCCESS)
+//			return err;
 	 
 	 if(mcrypt_generic_init(lbb->md, lbb->key, lbb->key_len, lbb->header.iv) < 0)
 			return SA_CAN_NOT_INIT_CRYPT;
-
+	 
 	 return SA_SUCCESS;
 }
 

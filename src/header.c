@@ -23,7 +23,7 @@ void init_header(struct setec_astronomy_header * header)
 {
 	 header->salt_len = 0;
 	 header->salt = NULL;
-	 header->hash_count = 0;
+	 header->hash_count = 2000;
 	 header->hash_len = 0;
 	 header->hash = NULL;
 	 header->iv_len = 0;
@@ -33,15 +33,22 @@ void init_header(struct setec_astronomy_header * header)
 void free_header(struct setec_astronomy_header * header)
 {	 
 	 header->salt_len = 0;
-	 if(header->salt != NULL)
+	 if(header->salt != NULL) {
 			free(header->salt);
+			header->salt = NULL;
+	 }
 
-	 if(header->hash != NULL)
+	 header->hash_len = 0;
+	 if(header->hash != NULL) {
 			free(header->hash);
+			header->hash = NULL;
+	 }
 
 	 header->iv_len = 0;
-	 if(header->iv != NULL)
+	 if(header->iv != NULL) {
 			free(header->iv);
+			header->iv = NULL;
+	 }
 }
 
 int read_header(struct setec_astronomy_header * header, const char * filename)

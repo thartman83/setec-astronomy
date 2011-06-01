@@ -1,4 +1,3 @@
 ((project-dir "~/projects/setecAstronomy")
  (bin-dir "bin")
- (tests ("header" "little_black_box" "setec_astronomy" "util" "key" 
- "regen_test_data")))
+ (tests ("header" "little_black_box" "setec_astronomy" "util" "regen_test_data")))
