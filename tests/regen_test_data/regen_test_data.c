@@ -28,10 +28,16 @@ void regen_file_exists()
 	 remove(FILE_EXISTS);
 
 	 init_header(&header);
-	 init_random_buffer(&(header.salt), &(header.salt_len), 256);
+	 header.salt_len = 256;
+	 init_random_buffer(&(header.salt), header.salt_len);
+
 	 header.hash_count = 256;
-	 init_random_buffer(&(header.hash), &(header.hash_len), 256);
-	 init_random_buffer(&(header.iv), &(header.iv_len), 256);
+	 header.hash_len = 256;
+	 init_random_buffer(&(header.hash), header.hash_len);
+
+	 header.iv_len = 256;
+	 init_random_buffer(&(header.iv), header.iv_len);
+
 	 write_header(&header, FILE_EXISTS);
 	 free_header(&header);
 }
@@ -42,10 +48,17 @@ void regen_good_header_data()
 	 remove(GOOD_HEADER_DATA);
 
 	 init_header(&header);
-	 init_random_buffer(&(header.salt), &(header.salt_len), 256);
+
+	 header.salt_len = 256;
+	 init_random_buffer(&(header.salt), header.salt_len);
+
 	 header.hash_count = 256;
-	 init_random_buffer(&(header.hash), &(header.hash_len), 256);
-	 init_random_buffer(&(header.iv), &(header.iv_len), 256);
+	 header.hash_len = 256;
+	 init_random_buffer(&(header.hash), header.hash_len);
+
+	 header.iv_len = 256;
+	 init_random_buffer(&(header.iv), header.iv_len);
+
 	 write_header(&header, GOOD_HEADER_DATA);
 	 free_header(&header);
 }

@@ -199,9 +199,8 @@ int header_len(const struct setec_astronomy_header * header)
 	 return (4 * INT_LEN) + header->salt_len + header->hash_len + header->iv_len;
 }
 
-void init_random_buffer(void ** buffer, int * buf_len, int len)
+void init_random_buffer(void ** buffer, int buf_len)
 {
-	 (*buf_len) = len;
-	 *buffer = malloc(*buf_len);
-	 set_random(*buffer, *buf_len);
+	 *buffer = malloc(buf_len);
+	 set_random(*buffer, buf_len);
 }

@@ -26,7 +26,7 @@
 int main()
 {	 
 	 RUN_TEST(test_add_entry());
-//	 RUN_TEST(test_del_entry());
+	 RUN_TEST(test_del_entry());
 
 	 return 0;
 }

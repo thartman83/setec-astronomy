@@ -74,11 +74,16 @@ int test_write_header()
 	 
 	 init_header(&w_header);
 	 init_header(&r_header);
+	 
+	 w_header.salt_len = 256;
+	 init_random_buffer(&w_header.salt,w_header.salt_len);
 
-	 init_random_buffer(&w_header.salt, &w_header.salt_len, 256);
 	 w_header.hash_count = 256;
-	 init_random_buffer(&w_header.hash, &w_header.hash_len, 256);	 
-	 init_random_buffer(&w_header.iv, &w_header.iv_len, 1024);
+	 w_header.hash_len = 256;
+	 init_random_buffer(&w_header.hash, w_header.hash_len);	 
+
+	 w_header.iv_len = 1024;
+	 init_random_buffer(&w_header.iv, w_header.iv_len);
 
 	 test_assert(write_header(&w_header, temp_file) == SA_SUCCESS);
 	 

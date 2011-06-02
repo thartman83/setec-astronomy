@@ -59,7 +59,6 @@ int init_lbb(struct little_black_box * lbb, int crypt_mode)
 int open_new_lbb(struct little_black_box * lbb, const char * filename, 
 								 const char * password)
 {
-	 int iv_size = 0;
 	 FILE * tmp_fd = NULL;	 
 	 int err = 0;
 
@@ -67,12 +66,14 @@ int open_new_lbb(struct little_black_box * lbb, const char * filename,
 	 if(err != SA_SUCCESS)
 			return err;
 
-	 iv_size = mcrypt_enc_get_iv_size(lbb->md);
-	 if(iv_size < 0)
+	 lbb->header.iv_len = mcrypt_enc_get_iv_size(lbb->md);
+	 if(lbb->header.iv_len < 0)
 			return SA_INVALID_IV_SIZE;
 
-	 init_random_buffer(&(lbb->header.iv), &(lbb->header.iv_len), iv_size);
-	 init_random_buffer(&(lbb->header.salt), &(lbb->header.salt_len), 0);
+	 lbb->header.salt_len = DEFAULT_SALT_LEN;
+
+	 init_random_buffer(&(lbb->header.iv), lbb->header.iv_len);
+	 init_random_buffer(&(lbb->header.salt), lbb->header.salt_len);
 	 
 	 /* Check to see if the filename already exists, no clobbering */
 	 tmp_fd = fopen(filename, "rb");
@@ -123,8 +124,9 @@ int open_lbb_ext(struct little_black_box * lbb, const char * password)
 																lbb->header.salt_len, lbb->header.hash_count,
 																lbb->key_len, lbb->key);
 	 
-//	 if(err != SA_SUCCESS)
-//			return err;
+	 // Function returns 1 for success
+	 if(err != 1)
+			return err;
 	 
 	 if(mcrypt_generic_init(lbb->md, lbb->key, lbb->key_len, lbb->header.iv) < 0)
 			return SA_CAN_NOT_INIT_CRYPT;

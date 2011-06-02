@@ -1,5 +1,5 @@
 CC=gcc
-OPTS=-Wall -g -O2
+OPTS=-Wall -g
 OBJS=${OBJS_DIR}/little_black_box.o ${OBJS_DIR}/util.o 
 OBJS+=${OBJS_DIR}/setec_astronomy.o ${OBJS_DIR}/header.o ${OBJS_DIR}/main.o
 OBJS+=${OBJS_DIR}/errors.o
