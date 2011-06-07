@@ -6,7 +6,7 @@ CC=gcc
 OPTS=-Wall -g
 OBJS=${OBJS_DIR}/little_black_box.o ${OBJS_DIR}/test_little_black_box.o ${OBJS_DIR}/header.o \
 		 ${OBJS_DIR}/util.o
-LIBS=-lmcrypt -lcrypto -lmhash
+LIBS=-lmcrypt -lssl
 
 ${BIN_DIR}/test_little_black_box: ${OBJS}
 	${CC} ${OTPS} ${LIBS} -o ${BIN_DIR}/test_little_black_box ${OBJS}

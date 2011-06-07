@@ -5,9 +5,10 @@ OBJS_DIR=${PROJECT_ROOT}/objs
 CC=gcc
 OPTS=-Wall -g
 OBJS=${OBJS_DIR}/test_header.o ${OBJS_DIR}/header.o ${OBJS_DIR}/util.o
+LIBS=-lssl
 
 ${BIN_DIR}/test_header: ${OBJS}
-	${CC} ${OPTS} -o $@ ${OBJS}
+	${CC} ${OPTS} ${LIBS} -o $@ ${OBJS}
 
 ${OBJS_DIR}/test_header.o: test_header.h test_header.c ${SRC_DIR}/header.h
 	${CC} ${OPTS} -c test_header.c -o $@

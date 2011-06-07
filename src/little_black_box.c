@@ -20,24 +20,29 @@
 #include <stdlib.h>
 #include <openssl/evp.h>
 
-int init_lbb(struct little_black_box * lbb, int crypt_mode)
+void init_lbb(struct little_black_box * lbb)
 {
-	 int buffer_size;
-	 
-	 if(crypt_mode != 0 && crypt_mode != 1)
-			return SA_INVALID_CRYPT_MODE;
-
-	 /* set everything to their default values */
-	 init_header(&(lbb->header));
 	 lbb->md = NULL;
 	 lbb->fd = NULL;
 	 lbb->buffer = NULL;
+	 lbb->key = NULL;	 
 	 lbb->data_len = 0;
-	 lbb->key = NULL;
-	 lbb->crypt_mode = crypt_mode;
+	 init_header(&lbb->header);
+}
 
-	 /* setup a mcrypt descriptor */
-	 lbb->md = mcrypt_module_open((char *)CRYPT_ALGO, NULL, 
+/* Assumes that lbb is a allocated but uninitialized 
+	 little_black_box struct */
+int open_lbb(struct little_black_box * lbb, int crypt_mode, 
+						 const char * filename, const char * password)
+{	 
+	 int err, buffer_size;
+
+	 init_lbb(lbb);
+
+	 if(crypt_mode != SA_CRYPT_MODE && crypt_mode != SA_DECRYPT_MODE)
+			return SA_INVALID_CRYPT_MODE;
+	 
+	 lbb->md = mcrypt_module_open((char *)CRYPT_ALGO, NULL,
 																(char *)CRYPT_MODE, NULL);
 
 	 if(lbb->md == NULL)
@@ -53,84 +58,88 @@ int init_lbb(struct little_black_box * lbb, int crypt_mode)
 									MAX_PAIR_SIZE + lbb->block_size);
 	 lbb->buffer = calloc(1, buffer_size);
 
-	 return SA_SUCCESS;
-}
+	 lbb->crypt_mode = crypt_mode;
+	 if(crypt_mode == SA_CRYPT_MODE)
+			err = open_write_lbb(lbb, filename, password);
+	 else
+			err = open_read_lbb(lbb, filename, password);
 
-int open_new_lbb(struct little_black_box * lbb, const char * filename, 
-								 const char * password)
-{
-	 FILE * tmp_fd = NULL;	 
-	 int err = 0;
-
-	 err = init_lbb(lbb, SA_CRYPT_MODE);
 	 if(err != SA_SUCCESS)
 			return err;
 
-	 lbb->header.iv_len = mcrypt_enc_get_iv_size(lbb->md);
-	 if(lbb->header.iv_len < 0)
-			return SA_INVALID_IV_SIZE;
-
-	 lbb->header.salt_len = DEFAULT_SALT_LEN;
-
-	 init_random_buffer(&(lbb->header.iv), lbb->header.iv_len);
-	 init_random_buffer(&(lbb->header.salt), lbb->header.salt_len);
-	 
-	 /* Check to see if the filename already exists, no clobbering */
-	 tmp_fd = fopen(filename, "rb");
-	 if(tmp_fd != NULL) {
-			fclose(tmp_fd);
-			return SA_FILE_EXISTS;
-	 }
-
-	 lbb->fd = fopen(filename, "wb");
-	 if(lbb->fd == NULL)
-			return SA_CAN_NOT_OPEN_FILE;
-
-	 write_header_ext(&(lbb->header), lbb->fd);
-
-	 return open_lbb_ext(lbb, password);
-}
-
-int open_lbb(struct little_black_box * lbb, const char * filename,
-						 const char * password)
-{	 
-	 int err = 0;
-
-	 /* initialize the little black box to defaults */
-	 err = init_lbb(lbb, SA_DECRYPT_MODE);
-	 if(err != SA_SUCCESS)
-			return err;
-	 
-	 /* open up the file and read the header */
-	 lbb->fd = fopen(filename, "rb");
-	 if(lbb->fd == NULL)
-			return SA_FILE_NOT_FOUND;
-
-	 err = read_header_ext(&(lbb->header), lbb->fd);
-	 if(err != SA_SUCCESS)
-			return SA_INVALID_HEADER;
-
-	 return open_lbb_ext(lbb, password);
-}
-
-int open_lbb_ext(struct little_black_box * lbb, const char * password)
-{
-	 int err;
-	 
 	 lbb->key_len = KEY_LEN;
 	 lbb->key = malloc(lbb->key_len);
 
 	 err = PKCS5_PBKDF2_HMAC_SHA1(password, strlen(password), lbb->header.salt, 
 																lbb->header.salt_len, lbb->header.hash_count,
 																lbb->key_len, lbb->key);
-	 
-	 // Function returns 1 for success
 	 if(err != 1)
-			return err;
+			return SA_UNABLE_TO_PBKDF2;
 	 
 	 if(mcrypt_generic_init(lbb->md, lbb->key, lbb->key_len, lbb->header.iv) < 0)
 			return SA_CAN_NOT_INIT_CRYPT;
 	 
+	 return SA_SUCCESS;
+}
+
+int open_write_lbb(struct little_black_box * lbb, const char * filename,
+									 const char * password)
+{
+	 int iv_len;
+	 FILE * tmp_fd;
+
+	 tmp_fd = fopen(filename, "rb");
+	 if(tmp_fd != NULL) {
+			fclose(tmp_fd);
+			close_lbb(lbb);
+			return SA_FILE_EXISTS;
+	 }
+			
+	 iv_len = mcrypt_enc_get_iv_size(lbb->md);
+	 if(iv_len < 0) {
+			close_lbb(lbb);
+			return SA_INVALID_IV_SIZE;
+	 }
+	 
+	 create_header(&lbb->header, iv_len, DEFAULT_SALT_LEN,
+								 DEFAULT_HASH_COUNT, password, DEFAULT_HASH_LEN);
+
+	 lbb->fd = fopen(filename, "wb");
+	 if(lbb->fd == NULL)
+			return SA_CAN_NOT_OPEN_FILE;
+	 
+	 write_header_ext(&(lbb->header), lbb->fd);
+
+	 return SA_SUCCESS;
+}
+
+int open_read_lbb(struct little_black_box * lbb, const char * filename, 
+									const char * password)
+{
+	 int err;
+	 unsigned char * hash;
+	 
+	 lbb->fd = fopen(filename, "rb");
+	 if(lbb->fd == NULL)
+			return SA_FILE_NOT_FOUND;
+	 
+	 err = read_header_ext(&(lbb->header), lbb->fd);
+	 if(err != SA_SUCCESS)
+			return SA_INVALID_HEADER;
+
+	 hash = malloc(lbb->header.hash_len);
+	 err = PKCS5_PBKDF2_HMAC_SHA1(password, strlen(password), lbb->header.salt, 
+																lbb->header.salt_len, lbb->header.hash_count*2,
+																lbb->header.hash_len, hash);
+	 
+	 if(err != 1)
+			return err;
+	 
+	 if(memcmp(hash, lbb->header.hash, lbb->header.hash_len) != 0)
+			return SA_WRONG_PASSWORD;
+
+	 free(hash);
+
 	 return SA_SUCCESS;
 }
 
@@ -148,11 +157,14 @@ int close_lbb(struct little_black_box * lbb)
 	 /* free up the header */
 	 free_header(&(lbb->header));
 
-	 /* deinit and close the mcrypt descriptor (if necessary) */
-	 mcrypt_generic_deinit(lbb->md);
+	 if(lbb->md != NULL) {
+			/* deinit and close the mcrypt descriptor (if necessary) */
+			mcrypt_generic_deinit(lbb->md);
 
-	 /* if this the last little black box to be closed kill the module as well */
-	 mcrypt_module_close(lbb->md);
+			/* if this the last little black box to be closed kill the module as well */
+			mcrypt_module_close(lbb->md);
+			lbb->md = NULL;
+	 }
 
 	 /* zero out the buffer before freeing it */
 	 if(lbb->buffer != NULL) {
@@ -161,8 +173,10 @@ int close_lbb(struct little_black_box * lbb)
 			lbb->buffer = NULL;
 	 }
 
-	 if(lbb->fd != NULL)
+	 if(lbb->fd != NULL) {
 			fclose(lbb->fd);
+			lbb->fd = NULL;
+	 }
 
 	 if(lbb->key != NULL) {
 			memset(lbb->key, 0, lbb->key_len);

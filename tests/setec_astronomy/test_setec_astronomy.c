@@ -55,6 +55,8 @@ int test_add_entry()
 	 														pass_buff) == SA_SUCCESS);
 	 test_assert(strncmp(TEST_PASS, pass_buff, MAX_PASS_LEN) == 0); 
 	 
+	 remove(NON_EXISTING_FILE);
+	 
 	 return UT_SUCCESS;
 }
 
@@ -96,7 +98,9 @@ int test_del_entry()
 									pass_buff) ==	 SA_NAME_NOT_FOUND);
 	 test_assert(get_pass_by_name(NON_EXISTING_FILE, TEST_PASSWORD, TEST_NAME2,
 									pass_buff) == SA_SUCCESS);
-	 test_assert(strncmp(TEST_PASS2, pass_buff, MAX_PASS_LEN) == 0);	 	 	 
+	 test_assert(strncmp(TEST_PASS2, pass_buff, MAX_PASS_LEN) == 0);
+
+	 remove(NON_EXISTING_FILE);
 	 
 	 return UT_SUCCESS;
 }

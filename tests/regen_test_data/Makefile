@@ -5,9 +5,10 @@ OBJS_DIR=${PROJECT_ROOT}/objs
 CC=gcc
 OPTS=-Wall -g
 OBJS=${OBJS_DIR}/regen_test_data.o ${OBJS_DIR}/header.o ${OBJS_DIR}/util.o
+LIBS=-lssl
 
 ${BIN_DIR}/test_regen_test_data: ${OBJS}
-	${CC} ${OPTS} -o $@ ${OBJS}
+	${CC} ${OPTS} ${LIBS} -o $@ ${OBJS}
 
 ${OBJS_DIR}/regen_test_data.o: regen_test_data.c
 	${CC} ${OPTS} -c regen_test_data.c -o $@

@@ -30,7 +30,7 @@ int add_name_pass(const char * password_file, const char * master_password,
 	 if( file_exists(password_file) ) {
 			err = append_name_pass(password_file, master_password, name, password);
 	 } else {
-			err = open_new_lbb(&lbb, password_file, master_password);
+			err = open_lbb(&lbb, SA_CRYPT_MODE, password_file, master_password);
 			if( err == SA_SUCCESS ) {
 				 err = write_lbb_name_pass(&lbb, name, password);			
 			}
@@ -52,14 +52,14 @@ int append_name_pass(const char * password_file, const char * master_password,
 	 if(rename(password_file, temp_password_file) != 0)
 			return SA_COULD_NOT_RENAME;
 
-	 err = open_lbb(&r_lbb, temp_password_file, master_password);
+	 err = open_lbb(&r_lbb, SA_DECRYPT_MODE, temp_password_file, master_password);
 	 if(err != SA_SUCCESS) {
 			rename(temp_password_file, password_file);
 			free(temp_password_file);
 			return err;
 	 }
 	 
-	 err = open_new_lbb(&w_lbb, password_file, master_password);
+	 err = open_lbb(&w_lbb, SA_CRYPT_MODE, password_file, master_password);
 	 if(err != SA_SUCCESS) {
 			rename(temp_password_file, password_file);
 			free(temp_password_file);
@@ -101,14 +101,14 @@ int del_name_pass(const char * password_file, const char * master_password,
 	 if(rename(password_file, temp_password_file) != 0)
 			return SA_COULD_NOT_RENAME;
 
-	 err = open_lbb(&r_lbb, temp_password_file, master_password);
+	 err = open_lbb(&r_lbb, SA_DECRYPT_MODE, temp_password_file, master_password);
 	 if(err != SA_SUCCESS) {
 			rename(temp_password_file, password_file);
 			free(temp_password_file);
 			return err;
 	 }
 	 
-	 err = open_new_lbb(&w_lbb, password_file, master_password);
+	 err = open_lbb(&w_lbb, SA_CRYPT_MODE, password_file, master_password);
 	 if(err != SA_SUCCESS) {
 			rename(temp_password_file, password_file);
 			free(temp_password_file);
@@ -143,7 +143,7 @@ int get_pass_by_name(const char * password_file, const char * master_password,
 	 struct name_pass_pair pair;	 
 	 int err;
 
-	 err = open_lbb(&lbb, password_file, master_password);
+	 err = open_lbb(&lbb, SA_DECRYPT_MODE, password_file, master_password);
 	 if(err != SA_SUCCESS)
 			return err;
 

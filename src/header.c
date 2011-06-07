@@ -18,6 +18,8 @@
 #include "util.h"
 
 #include <stdlib.h>
+#include <openssl/evp.h>
+#include <string.h>
 
 void init_header(struct setec_astronomy_header * header)
 {
@@ -49,6 +51,26 @@ void free_header(struct setec_astronomy_header * header)
 			free(header->iv);
 			header->iv = NULL;
 	 }
+}
+
+/* function assumes that header is a pointer to an allocated but un-initialized
+	 setec_astronomy_header struct */
+void create_header(struct setec_astronomy_header * header, int iv_len, 
+									 int salt_len, int hash_count, const char * password,
+									 int hash_len)
+{
+	 int err;
+
+	 header->salt_len = salt_len;
+	 init_random_buffer(&(header->salt), header->salt_len);
+	 header->hash_count = hash_count;
+	 header->hash_len = hash_len;
+	 header->hash = malloc(header->hash_len);
+	 err = PKCS5_PBKDF2_HMAC_SHA1(password, strlen(password), header->salt, 
+																header->salt_len, header->hash_count*2, 
+																header->hash_len, header->hash);
+	 header->iv_len = iv_len;
+	 init_random_buffer(&(header->iv), header->iv_len);
 }
 
 int read_header(struct setec_astronomy_header * header, const char * filename)

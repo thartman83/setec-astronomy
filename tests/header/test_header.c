@@ -19,6 +19,15 @@
 #include "../unit_test.h"
 
 #include <string.h>
+#include <stdlib.h>
+#include <openssl/evp.h>
+
+const char DEFAULT_PASSWORD[] = "foobarbaz";
+
+static const int DEFAULT_IV_LEN = 256;
+static const int DEFAULT_SALT_LEN = 10;
+static const int DEFAULT_HASH_COUNT = 2000;
+static const int DEFAULT_HASH_LEN = 256;
 
 int main()
 {
@@ -31,6 +40,7 @@ int main()
 int test_read_header()
 {
 	 struct setec_astronomy_header r_header;
+	 unsigned char * hash;
 	 
 	 /* Start off with a good test */
 	 init_header(&r_header);
@@ -38,10 +48,16 @@ int test_read_header()
 	 test_assert(read_header(&r_header, GOOD_HEADER_TEST) == SA_SUCCESS);
 
 	 /* Check to make sure that the read and write headers are identical */
-	 test_assert(r_header.salt_len == 256);
-	 test_assert(r_header.hash_count == 256);
-	 test_assert(r_header.hash_len == 256);
-	 test_assert(r_header.iv_len == 256);
+	 test_assert(r_header.salt_len == DEFAULT_SALT_LEN);
+	 test_assert(r_header.hash_count == DEFAULT_HASH_COUNT);
+	 test_assert(r_header.hash_len == DEFAULT_HASH_LEN);
+	 test_assert(r_header.iv_len == DEFAULT_IV_LEN);
+	 
+	 hash = malloc(r_header.hash_len);
+	 PKCS5_PBKDF2_HMAC_SHA1(DEFAULT_PASSWORD, strlen(DEFAULT_PASSWORD), 
+													r_header.salt, r_header.salt_len, 
+													r_header.hash_count*2, r_header.hash_len, hash);
+	 test_assert(memcmp(r_header.hash, hash, r_header.hash_len) == 0);
 
 	 free_header(&r_header);
 
@@ -74,19 +90,11 @@ int test_write_header()
 	 
 	 init_header(&w_header);
 	 init_header(&r_header);
+
+	 create_header(&w_header, DEFAULT_IV_LEN, DEFAULT_SALT_LEN, 
+								 DEFAULT_HASH_COUNT, DEFAULT_PASSWORD, DEFAULT_HASH_LEN);
 	 
-	 w_header.salt_len = 256;
-	 init_random_buffer(&w_header.salt,w_header.salt_len);
-
-	 w_header.hash_count = 256;
-	 w_header.hash_len = 256;
-	 init_random_buffer(&w_header.hash, w_header.hash_len);	 
-
-	 w_header.iv_len = 1024;
-	 init_random_buffer(&w_header.iv, w_header.iv_len);
-
-	 test_assert(write_header(&w_header, temp_file) == SA_SUCCESS);
-	 
+	 test_assert(write_header(&w_header, temp_file) == SA_SUCCESS);	 
 	 test_assert(read_header(&r_header, temp_file) == SA_SUCCESS);
 	 
 	 test_assert(w_header.salt_len == r_header.salt_len);
@@ -97,6 +105,7 @@ int test_write_header()
 	 test_assert(strncmp(w_header.salt, r_header.salt, w_header.salt_len) == 0);
 	 test_assert(strncmp(w_header.hash, r_header.hash, w_header.hash_len) == 0);
 	 test_assert(strncmp(w_header.iv, r_header.iv, w_header.iv_len) == 0);
+	 test_assert(strncmp(w_header.hash, r_header.hash, w_header.hash_len) == 0);
 
 	 free_header(&w_header);
 	 free_header(&r_header);

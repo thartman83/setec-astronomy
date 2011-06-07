@@ -21,22 +21,20 @@ const char FILE_EXISTS[] = TEST_DATA_DIR "file_exists";
 const char GOOD_HEADER_DATA[] = TEST_DATA_DIR "good_header_data";
 const char NO_DATA[] = TEST_DATA_DIR "no_data";
 const char NOT_ENOUGH_DATA[] = TEST_DATA_DIR "not_enough_data";
+const char DEFAULT_PASSWORD[] = "foobarbaz";
+
+static const int DEFAULT_IV_LEN = 256;
+static const int DEFAULT_SALT_LEN = 10;
+static const int DEFAULT_HASH_COUNT = 2000;
+static const int DEFAULT_HASH_LEN = 256;
 
 void regen_file_exists()
 {
 	 struct setec_astronomy_header header;
 	 remove(FILE_EXISTS);
 
-	 init_header(&header);
-	 header.salt_len = 256;
-	 init_random_buffer(&(header.salt), header.salt_len);
-
-	 header.hash_count = 256;
-	 header.hash_len = 256;
-	 init_random_buffer(&(header.hash), header.hash_len);
-
-	 header.iv_len = 256;
-	 init_random_buffer(&(header.iv), header.iv_len);
+	 create_header(&header, DEFAULT_IV_LEN, DEFAULT_SALT_LEN, DEFAULT_HASH_COUNT,
+								 DEFAULT_PASSWORD, DEFAULT_HASH_LEN);
 
 	 write_header(&header, FILE_EXISTS);
 	 free_header(&header);
@@ -47,17 +45,8 @@ void regen_good_header_data()
 	 struct setec_astronomy_header header;
 	 remove(GOOD_HEADER_DATA);
 
-	 init_header(&header);
-
-	 header.salt_len = 256;
-	 init_random_buffer(&(header.salt), header.salt_len);
-
-	 header.hash_count = 256;
-	 header.hash_len = 256;
-	 init_random_buffer(&(header.hash), header.hash_len);
-
-	 header.iv_len = 256;
-	 init_random_buffer(&(header.iv), header.iv_len);
+	 create_header(&header, DEFAULT_IV_LEN, DEFAULT_SALT_LEN, DEFAULT_HASH_COUNT,
+								 DEFAULT_PASSWORD, DEFAULT_HASH_LEN);
 
 	 write_header(&header, GOOD_HEADER_DATA);
 	 free_header(&header);

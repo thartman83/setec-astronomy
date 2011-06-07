@@ -41,6 +41,8 @@ enum { SA_SUCCESS = 0,
 			 SA_PASS_TOO_LONG = -21,
 			 SA_NO_TERM_SET = -22,
 			 SA_NO_TERM_GET = -23,
+			 SA_UNABLE_TO_PBKDF2 = -24,
+			 SA_WRONG_PASSWORD = -25,
 			 SA_NOT_IMPLEMENTED = -100};
 
 void print_err_msg(int err);

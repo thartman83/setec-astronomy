@@ -19,16 +19,11 @@
 static const char EXISTING_FILE[]= "../tests/data/file_exists";
 static const char NON_EXISTING_FILE[] = "../tests/data/file_does_not_exists";
 static const char NO_DATA_FILE[] = "../tests/data/no_data";
+static const char NOT_ENOUGH_DATA_FILE[] = "../tests/data/not_enough_data";
+static const char GOOD_HEADER_FILE[] = "../tests/data/good_header_data";
 static const char TEST_PASSWORD[] = "foobarbaz";
 
-int test_init_lbb();
-int test_open_new_lbb();
-int test_open_lbb();
-int test_open_lbb_ext();
-int test_close_lbb();
-int test_write_lbb();
-int test_write_lbb_buffer();
-int test_read_next_pair();
-int test_init_name_pass_pair();
+int test_open_close_lbb();
+int test_read_write_lbb();
 
 #endif//TEST_LITTLE_BLACK_BOX_HH_
