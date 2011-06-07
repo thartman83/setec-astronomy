@@ -30,11 +30,11 @@ int add_name_pass(const char * password_file, const char * master_password,
 	 if( file_exists(password_file) ) {
 			err = append_name_pass(password_file, master_password, name, password);
 	 } else {
-			err = open_lbb(&lbb, SA_CRYPT_MODE, password_file, master_password);
+			err = lbb_open(&lbb, SA_CRYPT_MODE, password_file, master_password);
 			if( err == SA_SUCCESS ) {
-				 err = write_lbb_name_pass(&lbb, name, password);			
+				 err = lbb_write_name_pass(&lbb, name, password);			
 			}
-			close_lbb(&lbb);
+			lbb_close(&lbb);
 	 }
 	 
 	 return err;
@@ -52,38 +52,38 @@ int append_name_pass(const char * password_file, const char * master_password,
 	 if(rename(password_file, temp_password_file) != 0)
 			return SA_COULD_NOT_RENAME;
 
-	 err = open_lbb(&r_lbb, SA_DECRYPT_MODE, temp_password_file, master_password);
+	 err = lbb_open(&r_lbb, SA_DECRYPT_MODE, temp_password_file, master_password);
 	 if(err != SA_SUCCESS) {
 			rename(temp_password_file, password_file);
 			free(temp_password_file);
 			return err;
 	 }
 	 
-	 err = open_lbb(&w_lbb, SA_CRYPT_MODE, password_file, master_password);
+	 err = lbb_open(&w_lbb, SA_CRYPT_MODE, password_file, master_password);
 	 if(err != SA_SUCCESS) {
 			rename(temp_password_file, password_file);
 			free(temp_password_file);
-			close_lbb(&r_lbb);			
+			lbb_close(&r_lbb);			
 			return err;
 	 }
 
-	 err = copy_contents(&r_lbb, &w_lbb);
+	 err = lbb_copy(&r_lbb, &w_lbb);
 	 if(err != SA_SUCCESS) {
 			rename(temp_password_file, password_file);
 			free(temp_password_file);
-			close_lbb(&w_lbb);
-			close_lbb(&r_lbb);
+			lbb_close(&w_lbb);
+			lbb_close(&r_lbb);
 	 }
 
-	 err = write_lbb_name_pass(&w_lbb, name, password);	 
+	 err = lbb_write_name_pass(&w_lbb, name, password);	 
 	 if(err != SA_SUCCESS) 
 			rename(temp_password_file, password_file);
 	 else
 			remove(temp_password_file);
 	 
 	 free(temp_password_file);
-	 close_lbb(&w_lbb);
-	 close_lbb(&r_lbb);
+	 lbb_close(&w_lbb);
+	 lbb_close(&r_lbb);
 	 	 
 	 return err;
 }
@@ -101,24 +101,24 @@ int del_name_pass(const char * password_file, const char * master_password,
 	 if(rename(password_file, temp_password_file) != 0)
 			return SA_COULD_NOT_RENAME;
 
-	 err = open_lbb(&r_lbb, SA_DECRYPT_MODE, temp_password_file, master_password);
+	 err = lbb_open(&r_lbb, SA_DECRYPT_MODE, temp_password_file, master_password);
 	 if(err != SA_SUCCESS) {
 			rename(temp_password_file, password_file);
 			free(temp_password_file);
 			return err;
 	 }
 	 
-	 err = open_lbb(&w_lbb, SA_CRYPT_MODE, password_file, master_password);
+	 err = lbb_open(&w_lbb, SA_CRYPT_MODE, password_file, master_password);
 	 if(err != SA_SUCCESS) {
 			rename(temp_password_file, password_file);
 			free(temp_password_file);
-			close_lbb(&r_lbb);			
+			lbb_close(&r_lbb);			
 			return err;
 	 }
 
-	 while((err = read_next_pair(&r_lbb, &pair)) == SA_SUCCESS) {
+	 while((err = lbb_read_pair(&r_lbb, &pair)) == SA_SUCCESS) {
 			if(strncmp(pair.name, name, MAX_NAME_LEN) != 0) {
-				 err = write_lbb_pair(&w_lbb, pair);
+				 err = lbb_write_pair(&w_lbb, pair);
 				 if(err != SA_SUCCESS)
 						break;
 			}
@@ -130,8 +130,8 @@ int del_name_pass(const char * password_file, const char * master_password,
 			remove(temp_password_file);
 	 
 	 free(temp_password_file);
-	 close_lbb(&w_lbb);
-	 close_lbb(&r_lbb);
+	 lbb_close(&w_lbb);
+	 lbb_close(&r_lbb);
 	 	 
 	 return (err > 0 ? SA_SUCCESS : err);
 }
@@ -143,18 +143,18 @@ int get_pass_by_name(const char * password_file, const char * master_password,
 	 struct name_pass_pair pair;	 
 	 int err;
 
-	 err = open_lbb(&lbb, SA_DECRYPT_MODE, password_file, master_password);
+	 err = lbb_open(&lbb, SA_DECRYPT_MODE, password_file, master_password);
 	 if(err != SA_SUCCESS)
 			return err;
 
-	 while((err = read_next_pair(&lbb, &pair)) == SA_SUCCESS) {
+	 while((err = lbb_read_pair(&lbb, &pair)) == SA_SUCCESS) {
 			if(strncmp(pair.name, name, MAX_NAME_LEN) == 0) {
 				 strncpy(pass, pair.pass, MAX_PASS_LEN);
 				 break;
 			}
 	 }
 
-	 close_lbb(&lbb);
+	 lbb_close(&lbb);
 
 	 return (err == SA_NO_MORE_PAIRS) ? SA_NAME_NOT_FOUND : err;
 }

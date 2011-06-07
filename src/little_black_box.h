@@ -66,29 +66,25 @@ struct little_black_box
 	 int key_len;
 };
 
-void init_lbb(struct little_black_box * lbb);
-int open_lbb(struct little_black_box * lbb, int crypt_mode, 
+int lbb_open(struct little_black_box * lbb, int crypt_mode, 
 						 const char * filename, const char * password);
-int open_read_lbb(struct little_black_box * lbb, const char * filename, 
+int lbb_open_read(struct little_black_box * lbb, const char * filename, 
 									const char * password);
-int open_write_lbb(struct little_black_box * lbb, const char * filename,
+int lbb_open_write(struct little_black_box * lbb, const char * filename,
 									 const char * password);
-int close_lbb(struct little_black_box * lbb);
-int write_lbb(struct little_black_box * lbb, void * buffer, int buffer_len);
-int write_lbb_buffer(struct little_black_box * lbb);
-int write_lbb_pair(struct little_black_box * lbb, const struct name_pass_pair);
-int write_lbb_name_pass(struct little_black_box * lbb, const char name[MAX_NAME_LEN],
+int lbb_close(struct little_black_box * lbb);
+int lbb_write(struct little_black_box * lbb, void * buffer, int buffer_len);
+int lbb_flush(struct little_black_box * lbb);
+int lbb_write_pair(struct little_black_box * lbb, const struct name_pass_pair);
+int lbb_write_name_pass(struct little_black_box * lbb, const char name[MAX_NAME_LEN],
 												const char pass[MAX_PASS_LEN]);
 
-int read_next_pair(struct little_black_box * lbb, struct name_pass_pair * pair);
-int read_block(struct little_black_box * lbb);
+int lbb_read_pair(struct little_black_box * lbb, struct name_pass_pair * pair);
+int lbb_read_block(struct little_black_box * lbb);
+
+int lbb_copy(struct little_black_box * r_lbb,
+						 struct little_black_box * w_lbb);
 
 int init_name_pass_pair(const char * pair_string, struct name_pass_pair * pair);
-int verify_message_digest(struct little_black_box * lbb);
-
-int copy_contents(struct little_black_box * r_lbb,
-									struct little_black_box * w_lbb);
-
-
 
 #endif//LITTLE_BLACK_BOX_H_

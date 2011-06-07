@@ -23,7 +23,7 @@ static const char NOT_ENOUGH_DATA_FILE[] = "../tests/data/not_enough_data";
 static const char GOOD_HEADER_FILE[] = "../tests/data/good_header_data";
 static const char TEST_PASSWORD[] = "foobarbaz";
 
-int test_open_close_lbb();
-int test_read_write_lbb();
+int test_lbb_open_close();
+int test_lbb_read_write();
 
 #endif//TEST_LITTLE_BLACK_BOX_HH_

@@ -20,24 +20,19 @@
 #include <stdlib.h>
 #include <openssl/evp.h>
 
-void init_lbb(struct little_black_box * lbb)
-{
+/* Assumes that lbb is a allocated but uninitialized 
+	 little_black_box struct */
+int lbb_open(struct little_black_box * lbb, int crypt_mode, 
+						 const char * filename, const char * password)
+{	 
+	 int err, buffer_size;
+
 	 lbb->md = NULL;
 	 lbb->fd = NULL;
 	 lbb->buffer = NULL;
 	 lbb->key = NULL;	 
 	 lbb->data_len = 0;
 	 init_header(&lbb->header);
-}
-
-/* Assumes that lbb is a allocated but uninitialized 
-	 little_black_box struct */
-int open_lbb(struct little_black_box * lbb, int crypt_mode, 
-						 const char * filename, const char * password)
-{	 
-	 int err, buffer_size;
-
-	 init_lbb(lbb);
 
 	 if(crypt_mode != SA_CRYPT_MODE && crypt_mode != SA_DECRYPT_MODE)
 			return SA_INVALID_CRYPT_MODE;
@@ -60,9 +55,9 @@ int open_lbb(struct little_black_box * lbb, int crypt_mode,
 
 	 lbb->crypt_mode = crypt_mode;
 	 if(crypt_mode == SA_CRYPT_MODE)
-			err = open_write_lbb(lbb, filename, password);
+			err = lbb_open_write(lbb, filename, password);
 	 else
-			err = open_read_lbb(lbb, filename, password);
+			err = lbb_open_read(lbb, filename, password);
 
 	 if(err != SA_SUCCESS)
 			return err;
@@ -82,7 +77,7 @@ int open_lbb(struct little_black_box * lbb, int crypt_mode,
 	 return SA_SUCCESS;
 }
 
-int open_write_lbb(struct little_black_box * lbb, const char * filename,
+int lbb_open_write(struct little_black_box * lbb, const char * filename,
 									 const char * password)
 {
 	 int iv_len;
@@ -91,13 +86,13 @@ int open_write_lbb(struct little_black_box * lbb, const char * filename,
 	 tmp_fd = fopen(filename, "rb");
 	 if(tmp_fd != NULL) {
 			fclose(tmp_fd);
-			close_lbb(lbb);
+			lbb_close(lbb);
 			return SA_FILE_EXISTS;
 	 }
 			
 	 iv_len = mcrypt_enc_get_iv_size(lbb->md);
 	 if(iv_len < 0) {
-			close_lbb(lbb);
+			lbb_close(lbb);
 			return SA_INVALID_IV_SIZE;
 	 }
 	 
@@ -113,7 +108,7 @@ int open_write_lbb(struct little_black_box * lbb, const char * filename,
 	 return SA_SUCCESS;
 }
 
-int open_read_lbb(struct little_black_box * lbb, const char * filename, 
+int lbb_open_read(struct little_black_box * lbb, const char * filename, 
 									const char * password)
 {
 	 int err;
@@ -143,13 +138,13 @@ int open_read_lbb(struct little_black_box * lbb, const char * filename,
 	 return SA_SUCCESS;
 }
 
-int close_lbb(struct little_black_box * lbb)
+int lbb_close(struct little_black_box * lbb)
 {
 	 int err;
 
 	 /* write anything that may be left in the buffer */
 	 if(lbb->data_len != 0 && lbb->crypt_mode == SA_CRYPT_MODE) {
-			err = write_lbb_buffer(lbb);
+			err = lbb_flush(lbb);
 			if(err != SA_SUCCESS)
 				 return err;
 	 }
@@ -188,7 +183,7 @@ int close_lbb(struct little_black_box * lbb)
 	 return SA_SUCCESS;
 }
 
-int write_lbb(struct little_black_box * lbb, void * buffer, int buffer_len)
+int lbb_write(struct little_black_box * lbb, void * buffer, int buffer_len)
 {
 	 unsigned char * tmp;
 	 unsigned char * pun = (unsigned char *)buffer; /* type punned version of buffer */
@@ -213,7 +208,7 @@ int write_lbb(struct little_black_box * lbb, void * buffer, int buffer_len)
 			/* Check to see if the buffer needs to be written and purged before 
 				 the next pass, otherwise recalc the data length*/
 			if((size + lbb->data_len) == lbb->block_size) {
-				 err = write_lbb_buffer(lbb);
+				 err = lbb_flush(lbb);
 				 if(err != SA_SUCCESS)
 						return err;
 			}else
@@ -228,7 +223,7 @@ int write_lbb(struct little_black_box * lbb, void * buffer, int buffer_len)
 	 return SA_SUCCESS;
 }
 
-int write_lbb_buffer(struct little_black_box * lbb)
+int lbb_flush(struct little_black_box * lbb)
 {
 	 int write_amt;
 	 int err;
@@ -252,21 +247,21 @@ int write_lbb_buffer(struct little_black_box * lbb)
 	 return SA_SUCCESS;
 }
 
-int write_lbb_pair(struct little_black_box * lbb, const struct name_pass_pair pair)
+int lbb_write_pair(struct little_black_box * lbb, const struct name_pass_pair pair)
 {
-	 return write_lbb_name_pass(lbb, pair.name, pair.pass);
+	 return lbb_write_name_pass(lbb, pair.name, pair.pass);
 }
 
-int write_lbb_name_pass(struct little_black_box * lbb, 
+int lbb_write_name_pass(struct little_black_box * lbb, 
 												const char name[MAX_NAME_LEN], 
 												const char pass[MAX_PASS_LEN])
 {
 	 char buffer[MAX_PAIR_SIZE];
 	 snprintf(buffer, MAX_PAIR_SIZE, "%s=%s\n", name, pass);
-	 return write_lbb(lbb, buffer, strlen(buffer));
+	 return lbb_write(lbb, buffer, strlen(buffer));
 }
 
-int read_next_pair(struct little_black_box * lbb, struct name_pass_pair * pair)
+int lbb_read_pair(struct little_black_box * lbb, struct name_pass_pair * pair)
 {
 	 char pair_string[MAX_PAIR_SIZE];
 	 char * ptr;
@@ -281,7 +276,7 @@ int read_next_pair(struct little_black_box * lbb, struct name_pass_pair * pair)
 				 len = ptr - (char*)lbb->buffer;
 				 found = 1;
 			}else{ 
-				 err = read_block(lbb);
+				 err = lbb_read_block(lbb);
 				 if(err != SA_SUCCESS)
 						return err;
 			}
@@ -297,7 +292,7 @@ int read_next_pair(struct little_black_box * lbb, struct name_pass_pair * pair)
 	 return SA_SUCCESS;
 }
 
-int read_block(struct little_black_box * lbb)
+int lbb_read_block(struct little_black_box * lbb)
 {
 	 char * read_buffer;
 	 int retval = SA_SUCCESS;
@@ -343,19 +338,14 @@ int init_name_pass_pair(const char * pair_string, struct name_pass_pair * pair)
 	 return SA_SUCCESS;
 }
 
-int copy_contents(struct little_black_box * r_lbb,
-									struct little_black_box * w_lbb)
+int lbb_copy(struct little_black_box * r_lbb,
+						 struct little_black_box * w_lbb)
 {
 	 int err;
 	 struct name_pass_pair pair;
 
-	 while((err = read_next_pair(r_lbb, &pair)) == SA_SUCCESS)
-			write_lbb_pair(w_lbb, pair);
+	 while((err = lbb_read_pair(r_lbb, &pair)) == SA_SUCCESS)
+			lbb_write_pair(w_lbb, pair);
 
 	 return (err == SA_NO_MORE_PAIRS ? SA_SUCCESS : err);
-}
-
-int verify_message_digest(struct little_black_box * lbb)
-{	
-	 return SA_SUCCESS;
 }
