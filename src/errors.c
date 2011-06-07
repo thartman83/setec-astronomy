@@ -89,6 +89,12 @@ void print_err_msg(int err)
 			case SA_NO_TERM_GET:
 				 printf("Could not get tty info.\n");
 				 break;
+			case SA_UNABLE_TO_PBKDF2:
+				 printf("Could not hash password using pbkdf2.\n");
+				 break;
+			case SA_WRONG_PASSWORD:
+				 printf("Wrong password.\n");
+				 break;
 			case SA_NOT_IMPLEMENTED:
 				 printf("INTERNAL ERROR: function not implemented.\n");
 				 break;
