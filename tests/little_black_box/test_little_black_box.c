@@ -110,8 +110,8 @@ int test_lbb_read_write()
 	 test_assert(strcmp(pair.pass, "bar") == 0);
 
 	 test_assert(remove(NON_EXISTING_FILE) == 0);
+	 
+	 lbb_close(&lbb);
 
 	 return UT_SUCCESS;
 }
-
-

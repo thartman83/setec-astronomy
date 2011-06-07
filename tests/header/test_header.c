@@ -59,6 +59,7 @@ int test_read_header()
 													r_header.hash_count*2, r_header.hash_len, hash);
 	 test_assert(memcmp(r_header.hash, hash, r_header.hash_len) == 0);
 
+	 free(hash);
 	 free_header(&r_header);
 
 	 /* Now try to read a header from a file that doesn't exist */

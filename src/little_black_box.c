@@ -127,11 +127,15 @@ int lbb_open_read(struct little_black_box * lbb, const char * filename,
 																lbb->header.salt_len, lbb->header.hash_count*2,
 																lbb->header.hash_len, hash);
 	 
-	 if(err != 1)
+	 if(err != 1) {
+			free(hash);
 			return err;
-	 
-	 if(memcmp(hash, lbb->header.hash, lbb->header.hash_len) != 0)
+	 }
+
+	 if(memcmp(hash, lbb->header.hash, lbb->header.hash_len) != 0) {
+			free(hash);
 			return SA_WRONG_PASSWORD;
+	 }
 
 	 free(hash);
 
