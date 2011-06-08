@@ -158,3 +158,43 @@ int get_pass_by_name(const char * password_file, const char * master_password,
 
 	 return (err == SA_NO_MORE_PAIRS) ? SA_NAME_NOT_FOUND : err;
 }
+
+int get_name_list(const char * password_file, const char * master_password,
+									char *** name_list, int * num_names)
+{
+	 struct little_black_box lbb;
+	 struct name_pass_pair pair;
+	 int x, err;
+
+	 err = lbb_open(&lbb, SA_DECRYPT_MODE, password_file, master_password);
+	 if(err != SA_SUCCESS)
+			return err;
+
+	 *num_names = 0;
+	 while((err = lbb_read_pair(&lbb, &pair)) == SA_SUCCESS)
+			(*num_names)++;
+	 
+	 lbb_close(&lbb);
+
+	 if(err != SA_NO_MORE_PAIRS)
+			return err;	 
+	 
+	 err = lbb_open(&lbb, SA_DECRYPT_MODE, password_file, master_password);
+	 if(err != SA_SUCCESS) {
+			lbb_close(&lbb);
+			return err;
+	 }
+
+	 *name_list = (char**)malloc((*num_names)*sizeof(char*));
+	 x = 0;
+	 while((err = lbb_read_pair(&lbb, &pair)) == SA_SUCCESS) {
+			(*name_list)[x] = malloc((strlen(pair.name) + 1) * sizeof(char));
+			strcpy((*name_list)[x],pair.name);
+			memset(pair.pass, 0, strlen(pair.pass));
+			memset(pair.name, 0, strlen(pair.name));
+			x++;
+	 }
+
+	 lbb_close(&lbb);
+	 return (err != SA_NO_MORE_PAIRS ? err : SA_SUCCESS);
+}

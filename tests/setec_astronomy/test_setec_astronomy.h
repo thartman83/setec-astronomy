@@ -25,5 +25,6 @@ static const char TEST_PASS2[] = "second_pass";
 
 int test_add_entry();
 int test_del_entry();
+int test_list_names();
 
 #endif//TEST_SETEC_ASTRONOMY_H_

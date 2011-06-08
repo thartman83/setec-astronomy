@@ -25,7 +25,7 @@
 static const char PASS_FILE_NAME[]=".setec_astronomy";
 
 // static struct char short_opts[] = "adg:hn:p:gf:";
-static char short_opts[] = "adghn:p:";
+static char short_opts[] = "adghn:p:l";
 static struct option long_options[] = 
 {
 	 {"add", no_argument, 0, 'a'},
@@ -34,6 +34,7 @@ static struct option long_options[] =
 	 {"help", no_argument, 0, 'h'},
 	 {"name", required_argument, 0, 'n'},
 	 {"password", required_argument, 0, 'p'},
+	 {"list", no_argument, 0, 'l'},
 //	 {"generate", no_argument, 0, 'g'},
 //	 {"password-file", required_argument, 0, 'f'},
 	 {0,0,0,0}
@@ -45,6 +46,7 @@ enum ACTION_TYPE {
 	 AT_DEL,
 	 AT_GET,
 	 AT_HELP,
+	 AT_LIST,
 	 AT_ERR
 };
 
@@ -81,6 +83,7 @@ void print_help()
 	 printf("\t\t\tRequires a name (-n).\n");
 	 printf("\t\t-g: get the password for an entry in the password file.\n");
 	 printf("\t\t\tRequires a name (-n).\n");
+	 printf("\t\t-l: list names in password file.\n");
 	 printf("\tAction arguments:\n");
 	 printf("\t\t-n: specifies the name of the entry within the password "
 					"file.\n");
@@ -118,6 +121,9 @@ struct Action parse_args(int argc, char ** argv)
 				 case 'p':
 						strncpy(act.pass, optarg, MAX_PASS_LEN);
 						break;
+				 case 'l':
+						act.action_type = (act.action_type == AT_NONE ? AT_LIST : AT_ERR);
+						break;
 				 default:
 						act.action_type = AT_ERR;
 						return act;
@@ -143,6 +149,8 @@ int analyze_args(struct Action action)
 						return -1;
 				 }
 				 break;
+			case AT_LIST:
+				 return 0;
 			case AT_HELP:
 				 return 1;
 			case AT_ERR:
@@ -228,6 +236,24 @@ int main(int argc, char ** argv)
 
 				 memset(pass, '\0', MAX_PASS_LEN);
 				 break;
+			case AT_LIST:
+			{
+				 int num_names, x;
+				 char ** name_list;
+				 
+				 num_names = 0;
+				 name_list = 0;
+				 err = get_name_list(pass_file, master_password, &name_list, &num_names);
+
+				 printf("The password file contains the following entries:\n");
+
+				 for(x = 0; x < num_names; ++x) {
+						printf("\t%s\n", name_list[x]);
+						free(name_list[x]);
+				 }
+				 free(name_list);
+				 break;
+			}						
 			default:
 				 err = -1;
 	 }

@@ -27,6 +27,7 @@ int main()
 {	 
 	 RUN_TEST(test_add_entry());
 	 RUN_TEST(test_del_entry());
+	 RUN_TEST(test_list_names());
 
 	 return 0;
 }
@@ -100,6 +101,39 @@ int test_del_entry()
 									pass_buff) == SA_SUCCESS);
 	 test_assert(strncmp(TEST_PASS2, pass_buff, MAX_PASS_LEN) == 0);
 
+	 remove(NON_EXISTING_FILE);
+	 
+	 return UT_SUCCESS;
+}
+
+int test_list_names()
+{
+	 char ** name_list;
+	 int num_names;
+
+	 remove(NON_EXISTING_FILE);
+	 test_assert(add_name_pass(NON_EXISTING_FILE, TEST_PASSWORD, TEST_NAME, 
+														 TEST_PASS) == SA_SUCCESS);
+	 test_assert(get_name_list(NON_EXISTING_FILE, TEST_PASSWORD, &name_list,
+														 &num_names) == SA_SUCCESS);
+	 test_assert(num_names == 1);
+	 test_assert(strcmp(name_list[0], TEST_NAME) == 0);
+
+	 free(name_list[0]);
+	 free(name_list);
+
+	 test_assert(add_name_pass(NON_EXISTING_FILE, TEST_PASSWORD, TEST_NAME2, 
+														 TEST_PASS2) == SA_SUCCESS);
+
+	 test_assert(get_name_list(NON_EXISTING_FILE, TEST_PASSWORD, &name_list,
+														 &num_names) == SA_SUCCESS);
+	 test_assert(num_names == 2);
+	 test_assert(strcmp(name_list[0], TEST_NAME) == 0);
+	 test_assert(strcmp(name_list[1], TEST_NAME2) == 0);
+
+	 free(name_list[0]);
+	 free(name_list[1]);
+	 free(name_list);
 	 remove(NON_EXISTING_FILE);
 	 
 	 return UT_SUCCESS;
