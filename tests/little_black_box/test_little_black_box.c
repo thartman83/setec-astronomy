@@ -115,3 +115,8 @@ int test_lbb_read_write()
 
 	 return UT_SUCCESS;
 }
+
+int test_lbb_open_rw()
+{
+	 return UT_SUCCESS;
+}

@@ -72,7 +72,11 @@ int lbb_open_read(struct little_black_box * lbb, const char * filename,
 									const char * password);
 int lbb_open_write(struct little_black_box * lbb, const char * filename,
 									 const char * password);
+int lbb_open_rw(struct little_black_box * r_lbb, struct little_black_box *w_lbb,
+								const char * filename, const char * password);
 int lbb_close(struct little_black_box * lbb);
+int lbb_close_rw(struct little_black_box * r_lbb, struct little_black_box * w_lbb,
+								 const char * filename, int status);
 int lbb_write(struct little_black_box * lbb, void * buffer, int buffer_len);
 int lbb_flush(struct little_black_box * lbb);
 int lbb_write_pair(struct little_black_box * lbb, const struct name_pass_pair);

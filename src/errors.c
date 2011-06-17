@@ -98,5 +98,7 @@ void print_err_msg(int err)
 			case SA_NOT_IMPLEMENTED:
 				 printf("INTERNAL ERROR: function not implemented.\n");
 				 break;
+			case SA_CAN_NOT_OPEN_IMPORT_FILE:
+				 printf("Can not open requested import file.\n");
 	 }
 }

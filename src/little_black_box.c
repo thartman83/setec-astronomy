@@ -77,37 +77,6 @@ int lbb_open(struct little_black_box * lbb, int crypt_mode,
 	 return SA_SUCCESS;
 }
 
-int lbb_open_write(struct little_black_box * lbb, const char * filename,
-									 const char * password)
-{
-	 int iv_len;
-	 FILE * tmp_fd;
-
-	 tmp_fd = fopen(filename, "rb");
-	 if(tmp_fd != NULL) {
-			fclose(tmp_fd);
-			lbb_close(lbb);
-			return SA_FILE_EXISTS;
-	 }
-			
-	 iv_len = mcrypt_enc_get_iv_size(lbb->md);
-	 if(iv_len < 0) {
-			lbb_close(lbb);
-			return SA_INVALID_IV_SIZE;
-	 }
-	 
-	 create_header(&lbb->header, iv_len, DEFAULT_SALT_LEN,
-								 DEFAULT_HASH_COUNT, password, DEFAULT_HASH_LEN);
-
-	 lbb->fd = fopen(filename, "wb");
-	 if(lbb->fd == NULL)
-			return SA_CAN_NOT_OPEN_FILE;
-	 
-	 write_header_ext(&(lbb->header), lbb->fd);
-
-	 return SA_SUCCESS;
-}
-
 int lbb_open_read(struct little_black_box * lbb, const char * filename, 
 									const char * password)
 {
@@ -140,6 +109,58 @@ int lbb_open_read(struct little_black_box * lbb, const char * filename,
 	 free(hash);
 
 	 return SA_SUCCESS;
+}
+
+int lbb_open_write(struct little_black_box * lbb, const char * filename,
+									 const char * password)
+{
+	 int iv_len;
+	 FILE * tmp_fd;
+
+	 tmp_fd = fopen(filename, "rb");
+	 if(tmp_fd != NULL) {
+			fclose(tmp_fd);
+			lbb_close(lbb);
+			return SA_FILE_EXISTS;
+	 }
+			
+	 iv_len = mcrypt_enc_get_iv_size(lbb->md);
+	 if(iv_len < 0) {
+			lbb_close(lbb);
+			return SA_INVALID_IV_SIZE;
+	 }
+	 
+	 create_header(&lbb->header, iv_len, DEFAULT_SALT_LEN,
+								 DEFAULT_HASH_COUNT, password, DEFAULT_HASH_LEN);
+
+	 lbb->fd = fopen(filename, "wb");
+	 if(lbb->fd == NULL)
+			return SA_CAN_NOT_OPEN_FILE;
+	 
+	 write_header_ext(&(lbb->header), lbb->fd);
+
+	 return SA_SUCCESS;
+}
+
+/* Helper function to manage reading and writing */
+int lbb_open_rw(struct little_black_box * r_lbb, struct little_black_box *w_lbb,
+								const char * filename, const char * password)
+{
+	 int err;	 
+	 char * temp_password_file = NULL;
+
+	 err = lbb_open(r_lbb, SA_DECRYPT_MODE, filename, password);
+	 if(err != SA_SUCCESS)
+			return err;
+
+	 temp_password_file = gen_temp_filename(filename);
+	 
+	 err = lbb_open(w_lbb, SA_CRYPT_MODE, temp_password_file, password);
+	 if(err != SA_SUCCESS)
+			lbb_close(r_lbb);	 
+
+	 free(temp_password_file);	 
+	 return err;
 }
 
 int lbb_close(struct little_black_box * lbb)
@@ -185,6 +206,22 @@ int lbb_close(struct little_black_box * lbb)
 	 }			
 
 	 return SA_SUCCESS;
+}
+
+int lbb_close_rw(struct little_black_box * r_lbb, struct little_black_box * w_lbb,
+								 const char * filename, int status)
+{
+	 char * temp_password_file = gen_temp_filename(filename);
+	 if(status == 0)
+			rename(temp_password_file, filename);
+	 else
+			remove(temp_password_file);
+	 
+	 free(temp_password_file);
+	 lbb_close(r_lbb);
+	 lbb_close(w_lbb);
+
+	 return status;
 }
 
 int lbb_write(struct little_black_box * lbb, void * buffer, int buffer_len)

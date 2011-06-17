@@ -31,4 +31,7 @@ int get_pass_by_name(const char * password_file, const char * master_password,
 int get_name_list(const char * password_file, const char * master_password,
 									char *** name_list, int * num_names);
 
+int import_name_pass(const char * password_file, const char * master_password,
+										 const char * import_file);
+
 #endif//SETEC_ASTRONOMY_H_
