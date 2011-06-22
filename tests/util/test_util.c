@@ -37,7 +37,7 @@ int test_int_from_2bytes()
 	 buf[1] = 5;
 	 
 	 val = int_from_2bytes(buf);
-	 test_assert(val == 52229);
+	 test_equals(val, 52229);
 	 
 	 return 0;
 }
@@ -50,7 +50,8 @@ int test_int_to_2bytes()
 	 val = 52229;
 	 int_to_2bytes(val, buf);
 	 
-	 test_assert(buf[0] == 204 && buf[1] == 5);
+	 test_equals(buf[0], 204);
+	 test_equals(buf[1], 5);
 	 
 	 return 0;
 }
@@ -60,7 +61,7 @@ int test_create_temp_filename()
 	 char * temp_name;
 
 	 temp_name = create_temp_filename("foobarbaz\0");
-	 test_assert(strcmp(temp_name, "foobarbaz.tmp\0") == 0);
+	 test_equals(strcmp(temp_name, "foobarbaz.tmp\0"), 0);
 
 	 free(temp_name);
 	 

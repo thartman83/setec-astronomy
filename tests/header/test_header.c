@@ -45,19 +45,19 @@ int test_read_header()
 	 /* Start off with a good test */
 	 init_header(&r_header);
 	 
-	 test_assert(read_header(&r_header, GOOD_HEADER_TEST) == SA_SUCCESS);
+	 test_equals(read_header(&r_header, GOOD_HEADER_TEST), SA_SUCCESS);
 
 	 /* Check to make sure that the read and write headers are identical */
-	 test_assert(r_header.salt_len == DEFAULT_SALT_LEN);
-	 test_assert(r_header.hash_count == DEFAULT_HASH_COUNT);
-	 test_assert(r_header.hash_len == DEFAULT_HASH_LEN);
-	 test_assert(r_header.iv_len == DEFAULT_IV_LEN);
+	 test_equals(r_header.salt_len, DEFAULT_SALT_LEN);
+	 test_equals(r_header.hash_count, DEFAULT_HASH_COUNT);
+	 test_equals(r_header.hash_len, DEFAULT_HASH_LEN);
+	 test_equals(r_header.iv_len, DEFAULT_IV_LEN);
 	 
 	 hash = malloc(r_header.hash_len);
 	 PKCS5_PBKDF2_HMAC_SHA1(DEFAULT_PASSWORD, strlen(DEFAULT_PASSWORD), 
 													r_header.salt, r_header.salt_len, 
 													r_header.hash_count*2, r_header.hash_len, hash);
-	 test_assert(memcmp(r_header.hash, hash, r_header.hash_len) == 0);
+	 test_equals(memcmp(r_header.hash, hash, r_header.hash_len), 0);
 
 	 free(hash);
 	 free_header(&r_header);
@@ -65,19 +65,19 @@ int test_read_header()
 	 /* Now try to read a header from a file that doesn't exist */
 	 init_header(&r_header);
 	 
-	 test_assert(read_header(&r_header, "thisfiledoesntexists") == 
+	 test_equals(read_header(&r_header, "thisfiledoesntexists"), 
 							 SA_FILE_NOT_FOUND);
 
 	 free_header(&r_header);
 
 	 /* Test against a file that exists but has no data */
 	 init_header(&r_header);
-	 test_assert(read_header(&r_header, NO_DATA_TEST) == SA_NO_DATA);
+	 test_equals(read_header(&r_header, NO_DATA_TEST), SA_NO_DATA);
 	 free_header(&r_header);
 
 	 /* Test against a file that exists and has some but not enough data */
 	 init_header(&r_header);
-	 test_assert(read_header(&r_header, NOT_ENOUGH_DATA_TEST) == SA_NO_DATA);
+	 test_equals(read_header(&r_header, NOT_ENOUGH_DATA_TEST), SA_NO_DATA);
 	 free_header(&r_header);
 
 	 return UT_SUCCESS;
@@ -95,18 +95,18 @@ int test_write_header()
 	 create_header(&w_header, DEFAULT_IV_LEN, DEFAULT_SALT_LEN, 
 								 DEFAULT_HASH_COUNT, DEFAULT_PASSWORD, DEFAULT_HASH_LEN);
 	 
-	 test_assert(write_header(&w_header, temp_file) == SA_SUCCESS);	 
-	 test_assert(read_header(&r_header, temp_file) == SA_SUCCESS);
+	 test_equals(write_header(&w_header, temp_file), SA_SUCCESS);	 
+	 test_equals(read_header(&r_header, temp_file), SA_SUCCESS);
 	 
-	 test_assert(w_header.salt_len == r_header.salt_len);
-	 test_assert(w_header.hash_count == r_header.hash_count);
-	 test_assert(w_header.hash_len == w_header.hash_len);
-	 test_assert(w_header.iv_len == r_header.iv_len);
+	 test_equals(w_header.salt_len, r_header.salt_len);
+	 test_equals(w_header.hash_count, r_header.hash_count);
+	 test_equals(w_header.hash_len, w_header.hash_len);
+	 test_equals(w_header.iv_len, r_header.iv_len);
 	 
-	 test_assert(strncmp(w_header.salt, r_header.salt, w_header.salt_len) == 0);
-	 test_assert(strncmp(w_header.hash, r_header.hash, w_header.hash_len) == 0);
-	 test_assert(strncmp(w_header.iv, r_header.iv, w_header.iv_len) == 0);
-	 test_assert(strncmp(w_header.hash, r_header.hash, w_header.hash_len) == 0);
+	 test_equals(strncmp(w_header.salt, r_header.salt, w_header.salt_len), 0);
+	 test_equals(strncmp(w_header.hash, r_header.hash, w_header.hash_len), 0);
+	 test_equals(strncmp(w_header.iv, r_header.iv, w_header.iv_len), 0);
+	 test_equals(strncmp(w_header.hash, r_header.hash, w_header.hash_len), 0);
 
 	 free_header(&w_header);
 	 free_header(&r_header);

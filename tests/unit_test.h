@@ -27,14 +27,24 @@ enum {UT_SUCCESS = 0, UT_FAILED = -1, UT_NOT_IMPLEMENTED = -2};
       return UT_FAILED;																						\
    }
 
+#define test_equals(val1, val2) {      																	\
+			int UT_EXPANDED_val1 = val1;																			\
+			int UT_EXPANDED_val2 = val2;																			\
+			if(UT_EXPANDED_val1 != UT_EXPANDED_val2) {												\
+				 printf("FAILED: %s Expected '" #val1 "' to be %d but got %d"		\
+								" instead at line %d in %s!\n",													\
+								__FUNCTION__, UT_EXPANDED_val2, UT_EXPANDED_val1,				\
+								__LINE__, __FILE__);																		\
+				 return UT_FAILED;																							\
+			}																																	\
+	 }
+
 #define RUN_TEST(fn) {													\
 	 int err = fn;																\
 	 if(err == UT_SUCCESS)												\
 			printf("PASS: %s\n", #fn);								\
 	 else if(err == UT_NOT_IMPLEMENTED)						\
 			printf("SKIP: %s\n", #fn);								\
-	 else if(err == UT_FAILED)										\
-			printf("FAIL: %s\n", #fn);								\
 	 }
 
 #endif//UNIT_TEST_HH_
