@@ -20,6 +20,7 @@
 #include <string.h>
 #include <getopt.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 int add_name_pass(const char * password_file, const char * master_password, 
 									const char * name, const char * password)
@@ -155,5 +156,48 @@ int get_name_list(const char * password_file, const char * master_password,
 int import_name_pass(const char * password_file, const char * master_password,
 										 const char * import_file)
 {
+	 struct little_black_box r_lbb, w_lbb;
+	 struct name_pass_pair pair;
+	 FILE * fd = NULL;
+	 char * line = NULL;
+	 int err = SA_SUCCESS, len = 0, read_len = 0;
+
+	 err = lbb_open_rw(&r_lbb, &w_lbb, password_file, master_password);
+
+	 if(err != SA_SUCCESS) {
+			lbb_close_rw(&r_lbb, &w_lbb, password_file, err);
+			return err;
+	 }
+	 
+	 err = lbb_copy(&r_lbb, &w_lbb);
+
+	 if(err != SA_SUCCESS) {
+			lbb_close_rw(&r_lbb, &w_lbb, password_file, err);
+			return err;
+	 }
+	 
+	 fd = fopen(import_file, "r");
+	 if(fd == NULL) {
+			err = SA_CAN_NOT_OPEN_IMPORT_FILE;
+			lbb_close_rw(&r_lbb, &w_lbb, password_file, err);
+			return err;
+	 }
+
+	 while((read_len = getline(&line, (size_t *)&len, fd)) != -1) {
+			/* chomp the newline */
+			line[read_len-1] = '\0';
+			err = init_name_pass_pair(line, read_len, &pair);
+			if(err != SA_SUCCESS)
+				 break;			
+
+			err = lbb_write_pair(&w_lbb, pair);
+			if(err != SA_SUCCESS)
+				 break;				 
+	 }
+	 
+	 free(line);
+	 fclose(fd);
+	 err = lbb_close_rw(&r_lbb, &w_lbb, password_file, err);
+	 
 	 return SA_SUCCESS;
 }

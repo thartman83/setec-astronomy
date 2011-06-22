@@ -212,7 +212,7 @@ int lbb_close_rw(struct little_black_box * r_lbb, struct little_black_box * w_lb
 								 const char * filename, int status)
 {
 	 char * temp_password_file = gen_temp_filename(filename);
-	 if(status == 0)
+	 if(status == SA_SUCCESS)
 			rename(temp_password_file, filename);
 	 else
 			remove(temp_password_file);
@@ -325,7 +325,7 @@ int lbb_read_pair(struct little_black_box * lbb, struct name_pass_pair * pair)
 
 	 strncpy(pair_string, lbb->buffer, len);
 	 pair_string[len] = '\0';
-	 init_name_pass_pair(pair_string, pair);
+	 init_name_pass_pair(pair_string, len, pair);
 
 	 pop_data(lbb->buffer, MAX_PAIR_SIZE + lbb->block_size, len);
 	 lbb->data_len = strlen(lbb->buffer);
@@ -360,21 +360,22 @@ int lbb_read_block(struct little_black_box * lbb)
 	 return retval;
 }
 
-int init_name_pass_pair(const char * pair_string, struct name_pass_pair * pair)
+int init_name_pass_pair(const char * pair_string, int len, 
+												struct name_pass_pair * pair)
 {
 	 char * ptr = NULL;
-	 int len;
+	 int pos;
 
 	 ptr = strchr(pair_string, '=');
 	 if(ptr == NULL)
 			return SA_NOT_PAIR_FORMAT;
 
-	 len = ptr - pair_string;
+	 pos = ptr - pair_string;
 	 
-	 strncpy(pair->name, pair_string, len);
-	 pair->name[len] = '\0';
+	 strncpy(pair->name, pair_string, pos);
+	 pair->name[pos] = '\0';
 
-	 strcpy(pair->pass, pair_string + (len + 1));
+	 strcpy(pair->pass, pair_string + (pos + 1));
 	 
 	 return SA_SUCCESS;
 }

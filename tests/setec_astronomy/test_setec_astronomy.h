@@ -17,6 +17,8 @@
 #define TEST_SETEC_ASTRONOMY_H_
 
 static const char NON_EXISTING_FILE[] = "../tests/data/file_does_not_exists";
+static const char GOOD_IMPORT_FILE[] = "../tests/data/good_import_file";
+static const char BAD_IMPORT_FILE[] = "../tests/data/bad_import_file";
 static const char TEST_PASSWORD[] = "foobarbaz";
 static const char TEST_NAME[] = "test_name";
 static const char TEST_PASS[] = "test_password";
@@ -26,5 +28,6 @@ static const char TEST_PASS2[] = "second_pass";
 int test_add_entry();
 int test_del_entry();
 int test_list_names();
+int test_import_file();
 
 #endif//TEST_SETEC_ASTRONOMY_H_

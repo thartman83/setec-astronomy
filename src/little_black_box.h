@@ -79,7 +79,7 @@ int lbb_close_rw(struct little_black_box * r_lbb, struct little_black_box * w_lb
 								 const char * filename, int status);
 int lbb_write(struct little_black_box * lbb, void * buffer, int buffer_len);
 int lbb_flush(struct little_black_box * lbb);
-int lbb_write_pair(struct little_black_box * lbb, const struct name_pass_pair);
+int lbb_write_pair(struct little_black_box * lbb, const struct name_pass_pair pair);
 int lbb_write_name_pass(struct little_black_box * lbb, const char name[MAX_NAME_LEN],
 												const char pass[MAX_PASS_LEN]);
 
@@ -89,6 +89,7 @@ int lbb_read_block(struct little_black_box * lbb);
 int lbb_copy(struct little_black_box * r_lbb,
 						 struct little_black_box * w_lbb);
 
-int init_name_pass_pair(const char * pair_string, struct name_pass_pair * pair);
+int init_name_pass_pair(const char * pair_string, int len, 
+												struct name_pass_pair * pair);
 
 #endif//LITTLE_BLACK_BOX_H_

@@ -28,6 +28,7 @@ int main()
 	 RUN_TEST(test_add_entry());
 	 RUN_TEST(test_del_entry());
 	 RUN_TEST(test_list_names());
+	 RUN_TEST(test_import_file());
 
 	 return 0;
 }
@@ -135,6 +136,35 @@ int test_list_names()
 	 free(name_list[1]);
 	 free(name_list);
 	 remove(NON_EXISTING_FILE);
+	 
+	 return UT_SUCCESS;
+}
+
+int test_import_file()
+{
+	 char ** name_list;
+	 int num_names, x;
+
+	 remove(NON_EXISTING_FILE);
+	 test_assert(add_name_pass(NON_EXISTING_FILE, TEST_PASSWORD, TEST_NAME, 
+														 TEST_PASS) == SA_SUCCESS);
+	 test_assert(import_name_pass(NON_EXISTING_FILE, TEST_PASSWORD, 
+																GOOD_IMPORT_FILE) == SA_SUCCESS);
+	 
+	 test_assert(get_name_list(NON_EXISTING_FILE, TEST_PASSWORD, &name_list,
+														 &num_names) == SA_SUCCESS);
+	 remove(NON_EXISTING_FILE);
+	 
+	 test_assert(num_names == 4);
+	 test_assert(strcmp(name_list[0], TEST_NAME) == 0);
+	 test_assert(strcmp(name_list[1], "foo") == 0);
+	 test_assert(strcmp(name_list[2], "bar") == 0);
+	 test_assert(strcmp(name_list[3], "baz") == 0);
+
+	 for(x = 0; x < num_names; ++x)
+			free(name_list[x]);
+
+	 free(name_list);
 	 
 	 return UT_SUCCESS;
 }

@@ -24,8 +24,8 @@
 
 static const char PASS_FILE_NAME[]=".setec_astronomy";
 
-// static struct char short_opts[] = "adg:hn:p:gf:";
-static char short_opts[] = "adghn:p:l";
+// static struct char short_opts[] = "adg:hn:p:gf:i:";
+static char short_opts[] = "adghn:p:li:";
 static struct option long_options[] = 
 {
 	 {"add", no_argument, 0, 'a'},
@@ -35,6 +35,7 @@ static struct option long_options[] =
 	 {"name", required_argument, 0, 'n'},
 	 {"password", required_argument, 0, 'p'},
 	 {"list", no_argument, 0, 'l'},
+	 {"import", required_argument, 0, 'i'},
 //	 {"generate", no_argument, 0, 'g'},
 //	 {"password-file", required_argument, 0, 'f'},
 	 {0,0,0,0}
@@ -47,6 +48,7 @@ enum ACTION_TYPE {
 	 AT_GET,
 	 AT_HELP,
 	 AT_LIST,
+	 AT_IMPORT,
 	 AT_ERR
 };
 
@@ -55,6 +57,7 @@ struct Action
 	 enum ACTION_TYPE action_type;
 	 char name[MAX_NAME_LEN];
 	 char pass[MAX_PASS_LEN];
+	 char * import_file;
 };
 
 char * get_default_pass_file()
@@ -99,6 +102,7 @@ struct Action parse_args(int argc, char ** argv)
 	 act.action_type = AT_NONE;
 	 act.name[0] = '\0';
 	 act.pass[0] = '\0';
+	 act.import_file = NULL;
 
 	 while ((opt = getopt_long(argc, argv, short_opts, long_options, 
 														 &option_index)) != -1) {
@@ -123,6 +127,10 @@ struct Action parse_args(int argc, char ** argv)
 						break;
 				 case 'l':
 						act.action_type = (act.action_type == AT_NONE ? AT_LIST : AT_ERR);
+						break;
+				 case 'i':
+						act.action_type = (act.action_type == AT_NONE ? AT_IMPORT : AT_ERR);
+						act.import_file = optarg;
 						break;
 				 default:
 						act.action_type = AT_ERR;
@@ -149,6 +157,7 @@ int analyze_args(struct Action action)
 						return -1;
 				 }
 				 break;
+			case AT_IMPORT:
 			case AT_LIST:
 				 return 0;
 			case AT_HELP:
@@ -254,6 +263,9 @@ int main(int argc, char ** argv)
 				 free(name_list);
 				 break;
 			}						
+			case AT_IMPORT:			
+				 err = import_name_pass(pass_file, master_password, act.import_file);
+				 break;
 			default:
 				 err = -1;
 	 }
